@@ -7,44 +7,59 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useRouter } from "next/router";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { ControlledTextField } from "../components/ControlledInputs/ControlledTextField";
 import { useAuth } from "../hooks/useAuth";
+import * as Yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/router";
 
-const Login = () => {
+const formSchema = Yup.object({
+  privateKey: Yup.string()
+    .required("Private Key is required")
+    .min(20, "Private Key must be at least 4 characters"),
+  password: Yup.string()
+    .required("Password is required")
+    .min(8, "Password must be at least 8 characters"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Passwords must match")
+    .required("Confirm Password is required")
+    .min(8, "Password must be at least 8 characters"),
+}).required();
+
+const formConfig = {
+  resolver: yupResolver(formSchema),
+};
+
+const Register = () => {
   const router = useRouter();
-  const { error, isLoading, login } = useAuth();
+  const { error, isLoading, register } = useAuth();
   const {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm({
-    defaultValues: {
-      username: "",
-      password: "",
-    },
-  });
-  console.log(errors);
+  } = useForm(formConfig);
 
-  const handleLogin = (data) => {
-    login(data.username, data.password);
+  const handleRegister = (data) => {
+    register(data);
   };
 
   return (
-    <Box>
-      <Card
-        sx={{
-          maxWidth: "600px",
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "100%",
-        }}
-      >
-        <form onSubmit={handleSubmit(handleLogin)}>
+    <Box
+      sx={{
+        maxWidth: "600px",
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "100%",
+        boxSizing: "border-box",
+        padding: "20px",
+      }}
+    >
+      <Card>
+        <form onSubmit={handleSubmit(handleRegister)}>
           <CardContent
             sx={{
               display: "flex",
@@ -54,27 +69,23 @@ const Login = () => {
             }}
           >
             <Typography variant="h4" textAlign="center">
-              Log in!
+              Register
             </Typography>
             <ControlledTextField
               name="privateKey"
               label="Private Key"
               control={control}
-              rules={{ required: true }}
-            />
-            <ControlledTextField
-              name="username"
-              label="Username"
-              autofill="username"
-              control={control}
-              rules={{ required: true }}
             />
             <ControlledTextField
               name="password"
               label="Password"
               control={control}
-              autofill="current-password"
-              rules={{ required: true }}
+              type="password"
+            />
+            <ControlledTextField
+              name="confirmPassword"
+              label="Confirm Password"
+              control={control}
               type="password"
             />
             <Button
@@ -83,14 +94,14 @@ const Login = () => {
               sx={{ maxWidth: "200px" }}
               type="submit"
             >
-              Log in
+              Register
             </Button>
             <Link
               component="button"
               underline="hover"
-              onClick={() => router.push("/register", null, { shallow: true })}
+              onClick={() => router.push("/login")}
             >
-              Register
+              Login
             </Link>
             {error && <Typography color="error">{error}</Typography>}
           </CardContent>
@@ -100,4 +111,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

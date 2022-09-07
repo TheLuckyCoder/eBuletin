@@ -13,7 +13,7 @@ export const useAuth = () => {
     setIsLoading(true);
     try {
       setIsAuthenticated(true);
-      router.asPath("/");
+      router.push("/");
     } catch (error) {
       setError(getErrorMessage(error));
     }
@@ -24,7 +24,7 @@ export const useAuth = () => {
     setIsLoading(true);
     try {
       setIsAuthenticated(true);
-      navigate("/");
+      router.push("/");
     } catch (error) {
       setError(getErrorMessage(error));
     }
@@ -33,7 +33,6 @@ export const useAuth = () => {
 
   const logout = () => {
     setIsAuthenticated(false);
-    navigate("/login");
   };
 
   return { logout, isAuthenticated, login, isLoading, error, register };
