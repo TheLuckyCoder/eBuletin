@@ -11,8 +11,7 @@ object RSA {
     fun encryptString(data: String, publicKey: Key): String {
         val encryptCipher: Cipher = Cipher.getInstance("RSA")
         encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey)
-        val encryptedBytes = encryptCipher.doFinal(data.toByteArray())
-        return Base64.getEncoder().encodeToString(encryptedBytes)
+        return encryptCipher.doFinal(data.toByteArray())!!.toHexString()
     }
 
     inline fun <reified T> encrypt(data: T, publicKey: Key): String =

@@ -9,10 +9,18 @@ object SHA {
         val bytes = MessageDigest
             .getInstance(type)
             .digest(input.toByteArray())
-        return bytes.toHex()
+        return bytes.toHexString()
     }
+}
 
-    private fun ByteArray.toHex(): String {
-        return joinToString("") { "%02x".format(it) }
+fun ByteArray.toHexString(): String {
+    return joinToString("") { "%02x".format(it) }
+}
+
+fun String.decodeHex(): ByteArray {
+    check(length % 2 == 0) { "Must have an even length" }
+
+    return ByteArray(length / 2) {
+        Integer.parseInt(this, it * 2, (it + 1) * 2, 16).toByte()
     }
 }

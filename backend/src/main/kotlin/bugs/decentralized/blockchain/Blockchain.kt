@@ -1,8 +1,9 @@
 package bugs.decentralized.blockchain
 
+import bugs.decentralized.model.Transaction
 import java.math.BigInteger
 
-class Blockchain(val nodeId: String) {
+class Blockchain {
     val blocks = mutableListOf(GENESIS_BLOCK)
     val transactionPool = mutableListOf<Transaction>()
 
@@ -24,6 +25,22 @@ class Blockchain(val nodeId: String) {
         }
 
         return newBlock
+    }
+
+    fun verify() {
+        check(blocks.isNotEmpty()) { "Blockchain can't be empty" }
+        check(blocks[0] == GENESIS_BLOCK) { "Invalid first block!" }
+
+        for (i in 1 until blocks.size) {
+            val current = blocks[i]
+
+            check(current.blockNumber == i.toULong()) { "Invalid block number ${current.blockNumber} for block #${i}!" }
+
+            val previous = blocks[i - 1]
+            check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
+
+            check(isPoWValid(current.hash)) { "Invalid previous block hash's difficutly for block #$i!" }
+        }
     }
 
     fun submitTransaction(senderAddress: String, receiverAddress: String, data: String) {

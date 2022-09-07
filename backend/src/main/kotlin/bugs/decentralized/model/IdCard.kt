@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class IdCard(
-    val cnp: Int,
+    val cnp: UInt,
     val lastName: String,
     val firstName: String,
     val address: String,
@@ -15,6 +15,6 @@ data class IdCard(
     val sex: Char,
     val issuedBy: String,
     val series: String,
-    val number: Int,
+    val number: UInt,
     val validity: LocalTime,
 )

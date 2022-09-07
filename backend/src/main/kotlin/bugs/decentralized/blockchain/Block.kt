@@ -1,5 +1,6 @@
 package bugs.decentralized.blockchain
 
+import bugs.decentralized.model.Transaction
 import bugs.decentralized.utils.SHA
 
 data class Block(
@@ -17,5 +18,5 @@ data class Block(
     }
 
     private fun computeHash() =
-        SHA.sha256(blockNumber.toString() + timestamp + transactions.joinToString { it.hash } + parentHash + nonce)
+        SHA.sha256(blockNumber.toString() + timestamp + transactions.joinToString("") { it.hash } + parentHash + nonce)
 }
