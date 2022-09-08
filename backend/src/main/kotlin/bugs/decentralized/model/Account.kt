@@ -7,6 +7,7 @@ import java.security.MessageDigest
 @Serializable
 @JvmInline
 value class PublicAccountKey(val value: String) {
+
     fun toAddress(): AccountAddress {
         val hash = MessageDigest
             .getInstance("SHA-3")

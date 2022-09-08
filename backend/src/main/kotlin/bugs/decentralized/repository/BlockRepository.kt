@@ -3,11 +3,9 @@ package bugs.decentralized.repository
 import bugs.decentralized.blockchain.Block
 import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.TransactionData
-import kotlinx.serialization.json.internal.decodeStringToJsonTree
 import org.springframework.data.mongodb.repository.MongoRepository
 
-interface BlockRepository : MongoRepository<Block, String>
-
+interface BlockRepository : MongoRepository<Block, ULong>
 
 fun BlockRepository.getInformationAtAddress(
     address: AccountAddress,

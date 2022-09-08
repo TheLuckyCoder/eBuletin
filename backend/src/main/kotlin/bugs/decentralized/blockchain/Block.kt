@@ -2,8 +2,10 @@ package bugs.decentralized.blockchain
 
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.utils.SHA
+import org.springframework.data.annotation.Id
 
 data class Block(
+    @Id
     val blockNumber: ULong, // the length of the blockchain in blocks
     val timestamp: Long,
     val transactions: List<Transaction>,
