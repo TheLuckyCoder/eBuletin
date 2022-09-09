@@ -1,6 +1,6 @@
 package bugs.decentralized.repository
 
-import bugs.decentralized.blockchain.Block
+import bugs.decentralized.model.Block
 import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.TransactionData
 import org.springframework.data.mongodb.repository.MongoRepository

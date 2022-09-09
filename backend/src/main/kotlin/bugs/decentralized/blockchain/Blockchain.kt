@@ -1,11 +1,12 @@
 package bugs.decentralized.blockchain
 
+import bugs.decentralized.model.Block
 import bugs.decentralized.model.Transaction
 import java.math.BigInteger
 
-class Blockchain {
-    val blocks = mutableListOf(GENESIS_BLOCK)
-    val transactionPool = mutableListOf<Transaction>()
+class Blockchain(
+    private val blocks: MutableList<Block>
+) {
 
     fun mineBlock(transactions: List<Transaction>): Block {
         // Create a new block which will "point" to the last block.

@@ -1,6 +1,5 @@
-package bugs.decentralized.blockchain
+package bugs.decentralized.model
 
-import bugs.decentralized.model.Transaction
 import bugs.decentralized.utils.SHA
 import org.springframework.data.annotation.Id
 

@@ -1,6 +1,6 @@
 package bugs.decentralized.controller
 
-import bugs.decentralized.blockchain.Block
+import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
-import java.net.http.HttpResponse
 
 /**
  * Used to communicate with the other validators in the network
