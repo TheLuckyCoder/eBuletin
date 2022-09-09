@@ -9,5 +9,5 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 class BlockchainApplication
 
 fun main(args: Array<String>) {
-	runApplication<BlockchainApplication>(*args)
+    runApplication<BlockchainApplication>(*args)
 }

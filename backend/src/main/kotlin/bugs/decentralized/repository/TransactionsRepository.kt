@@ -1,7 +1,7 @@
 package bugs.decentralized.repository
 
 import bugs.decentralized.model.Transaction
-import java.util.Collections
+import java.util.*
 
 object TransactionsRepository {
 

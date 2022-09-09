@@ -1,31 +1,40 @@
 package bugs.decentralized.blockchain
 
+import bugs.decentralized.controller.ValidatorController
 import bugs.decentralized.model.Block
+import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
-import java.math.BigInteger
+import bugs.decentralized.repository.BlockRepository
+import bugs.decentralized.repository.NodesRepository
 
 class Blockchain(
     private val blocks: MutableList<Block>
 ) {
+    private val blockRepository: BlockRepository = TODO()
+    private val nodesRepository: NodesRepository = TODO()
+    /***Why doesn't it work
+     * I don't get it
+     * please help*/
+    private val validatorController = ValidatorController(blockRepository, nodesRepository)
+    var waitTime: ULong = 0UL
 
     fun mineBlock(transactions: List<Transaction>): Block {
         // Create a new block which will "point" to the last block.
         val lastBlock = blocks.last()
-        var newBlock = Block(lastBlock.blockNumber + 1u, System.currentTimeMillis(), transactions, lastBlock.hash)
+        waitTime = ULong.MAX_VALUE
 
-        while (true) {
-            val pow = newBlock.hash
-            println("Mining #${newBlock.blockNumber}: nonce: ${newBlock.nonce}, pow: $pow")
+        assignMineTimeForEachNode(validatorController.nodes())
 
-            if (isPoWValid(pow)) {
-                println("Found valid POW: ${pow}!");
-                break
-            }
+        return Block(lastBlock.blockNumber + 1u, System.currentTimeMillis(), transactions, lastBlock.hash, waitTime)
+    }
 
-            newBlock = newBlock.copy(nonce = newBlock.nonce + 1)
+    private fun assignMineTimeForEachNode(nodes: List<Node>) {
+        for (node in nodes) {
+            node.assignMiningTime()
+
+            if (node.mineTime < waitTime)
+                waitTime = node.mineTime
         }
-
-        return newBlock
     }
 
     fun verify() {
@@ -40,7 +49,7 @@ class Blockchain(
             val previous = blocks[i - 1]
             check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
 
-            check(isPoWValid(current.hash)) { "Invalid previous block hash's difficutly for block #$i!" }
+            check(isPoetValid(current.nonce, waitTime)) { "Invalid waiting time for block #$i!" }
         }
     }
 
@@ -54,17 +63,10 @@ class Blockchain(
     }
 
     companion object {
-        val GENESIS_BLOCK = Block(0UL, System.currentTimeMillis(), emptyList(), "", 0)
-        const val DIFFICULTY = 2
-        const val TARGET = 1 shl (256 - DIFFICULTY)
+        val GENESIS_BLOCK = Block(0UL, System.currentTimeMillis(), emptyList(), "", 0UL)
 
-        fun isPoWValid(pow: String): Boolean {
-            return try {
-                val newPow = pow.removePrefix("0x")
-                BigInteger(newPow, 16).compareTo(BigInteger.valueOf(TARGET.toLong())) != 1 // less then or equal
-            } catch (e: NumberFormatException) {
-                false
-            }
+        fun isPoetValid(poet: ULong, currentWaitingTime: ULong): Boolean {
+            return currentWaitingTime - 1UL <= poet && currentWaitingTime + 1UL >= poet
         }
     }
 }
