@@ -15,7 +15,7 @@ import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
   const router = useRouter();
-  const { error, isLoading, login } = useAuth();
+  const { error, isLoading, login, encryptedPrivateKey } = useAuth();
   const {
     handleSubmit,
     control,
@@ -26,24 +26,25 @@ const Login = () => {
       password: "",
     },
   });
-  console.log(errors);
 
   const handleLogin = (data) => {
-    login(data.username, data.password);
+    login(data.password);
   };
 
   return (
-    <Box>
-      <Card
-        sx={{
-          maxWidth: "600px",
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "100%",
-        }}
-      >
+    <Box
+      sx={{
+        maxWidth: "600px",
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "100%",
+        boxSizing: "border-box",
+        padding: "20px",
+      }}
+    >
+      <Card elevation={12}>
         <form onSubmit={handleSubmit(handleLogin)}>
           <CardContent
             sx={{
@@ -56,19 +57,16 @@ const Login = () => {
             <Typography variant="h4" textAlign="center">
               Log in!
             </Typography>
-            <ControlledTextField
-              name="privateKey"
-              label="Private Key"
-              control={control}
-              rules={{ required: true }}
-            />
-            <ControlledTextField
-              name="username"
-              label="Username"
-              autofill="username"
-              control={control}
-              rules={{ required: true }}
-            />
+            {!encryptedPrivateKey && (
+              <ControlledTextField
+                name="privateKey"
+                label="Private Key"
+                multiline
+                rows={4}
+                control={control}
+                rules={{ required: true }}
+              />
+            )}
             <ControlledTextField
               name="password"
               label="Password"

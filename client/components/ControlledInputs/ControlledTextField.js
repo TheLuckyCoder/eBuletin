@@ -7,6 +7,8 @@ export function ControlledTextField({
   name,
   label,
   defaultValue,
+  multiline,
+  rows,
   rules,
   type,
   ...rest
@@ -33,6 +35,8 @@ export function ControlledTextField({
               type={type}
               variant="outlined"
               autoComplete="off"
+              multiline={multiline}
+              rows={rows}
               label={label}
               value={value || ""}
               onChange={onChange}
@@ -49,4 +53,6 @@ export function ControlledTextField({
 }
 ControlledTextField.defaultProps = {
   defaultValue: "",
+  multiline: false,
+  rows: 1,
 };

@@ -16,9 +16,9 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/router";
 
 const formSchema = Yup.object({
-  privateKey: Yup.string()
-    .required("Private Key is required")
-    .min(20, "Private Key must be at least 4 characters"),
+  publicKey: Yup.string()
+    .required("Public Key is required")
+    .min(20, "Public Key must be at least 20 characters"),
   password: Yup.string()
     .required("Password is required")
     .min(8, "Password must be at least 8 characters"),
@@ -34,15 +34,22 @@ const formConfig = {
 
 const Register = () => {
   const router = useRouter();
-  const { error, isLoading, register } = useAuth();
+  const { error, isLoading, register, generateKeyPair } = useAuth();
   const {
     handleSubmit,
     control,
     formState: { errors },
+    setValue,
   } = useForm(formConfig);
 
-  const handleRegister = (data) => {
-    register(data);
+  const handleRegister = async (data) => {
+    await register(data);
+  };
+  console.log(errors);
+
+  const handleGenerateKey = async () => {
+    const publicKey = await generateKeyPair(); // private key will be stored in memory for later encryption
+    setValue("publicKey", publicKey);
   };
 
   return (
@@ -58,7 +65,7 @@ const Register = () => {
         padding: "20px",
       }}
     >
-      <Card>
+      <Card elevation={10}>
         <form onSubmit={handleSubmit(handleRegister)}>
           <CardContent
             sx={{
@@ -72,10 +79,14 @@ const Register = () => {
               Register
             </Typography>
             <ControlledTextField
-              name="privateKey"
-              label="Private Key"
+              name="publicKey"
+              label="Public Key"
+              multiline
+              rows={4}
               control={control}
+              rules={{ required: true }}
             />
+            <Button onClick={handleGenerateKey}>Generate Key</Button>
             <ControlledTextField
               name="password"
               label="Password"
