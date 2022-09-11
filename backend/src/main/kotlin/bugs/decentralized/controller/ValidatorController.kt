@@ -2,15 +2,22 @@ package bugs.decentralized.controller
 
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
+import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.utils.RSA
 import bugs.decentralized.repository.TransactionsRepository
+import bugs.decentralized.utils.ecdsa.ECDSA
+import bugs.decentralized.utils.ecdsa.ECDSA.signedMessageToKey
+import bugs.decentralized.utils.ecdsa.ECDSASignature
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import java.math.BigInteger
 
 /**
  * Used to communicate with the other validators in the network
@@ -47,24 +54,26 @@ class ValidatorController @Autowired constructor(
     }
 
     @PostMapping("/transactions")
-    fun newTransaction(@RequestBody transaction: Transaction): HttpStatus {
+    fun newTransaction(@RequestBody transaction: Transaction): HttpStatus
+    {
         val hash = transaction.hash
-        if (transactionsRepository.transactionsPool.any { it.hash == hash }) {
+
+        if (transactionsRepository.transactionsPool.any { it.hash == hash })
+        {
             return HttpStatus.CONFLICT
         }
 
-        val decryptedHash = RSA.decryptString(transaction.signature, )
-
-        val computedHash = transaction.hash
-
-        if(decryptedHash == computedHash)
-        {
-
-        }
-
         var isValid = true
-        if (isValid) {
-//            nodesSerice.sendTransaction()
+
+        val publicKey = signedMessageToKey(Json.encodeToString(transaction.data), transaction.signature)
+
+        val publicAccountKey = PublicAccountKey(publicKey.toString())
+
+        check(transaction.sender == publicAccountKey.toAddress())
+
+        if (isValid)
+        {
+            //nodesSerice.sendTransaction()
             return HttpStatus.OK
         }
 

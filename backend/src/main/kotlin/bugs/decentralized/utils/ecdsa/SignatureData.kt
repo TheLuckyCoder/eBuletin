@@ -1,5 +1,8 @@
 package bugs.decentralized.utils.ecdsa
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class SignatureData(val v: ByteArray, val r: ByteArray, val s: ByteArray) {
 
     constructor(v: Byte, r: ByteArray, s: ByteArray) : this(byteArrayOf(v), r, s)

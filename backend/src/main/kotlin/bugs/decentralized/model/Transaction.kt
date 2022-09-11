@@ -2,6 +2,7 @@ package bugs.decentralized.model
 
 import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.StringMap
+import bugs.decentralized.utils.ecdsa.SignatureData
 import bugs.decentralized.utils.toHexString
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -28,7 +29,7 @@ data class Transaction(
      * See https://goethereumbook.org/signature-verify/
      * https://ethereum.stackexchange.com/questions/13778/get-public-key-of-any-ethereum-account/13892
      */
-    val signature: String,
+    val signature: SignatureData,
     /**
      * a sequentially incrementing counter which indicate the transaction number from the account
      * This must be unique per sender
@@ -53,12 +54,15 @@ data class Transaction(
         ): Transaction {
             val signature = Signature.getInstance ("SHA256withECDSA").apply {
                 initSign(privateKey)
-                update(json.encodeToString(data).toByteArray())
+                update(transactionDataToBytes(data))
 
             }.sign()
 
             return Transaction(sender, receiver, data, signature.toHexString(), nonce)
         }
+
+        fun transactionDataToBytes(data: TransactionData) =
+            json.encodeToString(data).toByteArray()
     }
 }
 

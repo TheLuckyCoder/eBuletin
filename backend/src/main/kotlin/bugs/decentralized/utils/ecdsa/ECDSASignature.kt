@@ -1,8 +1,8 @@
 package bugs.decentralized.utils.ecdsa
 
+import kotlinx.serialization.Serializable
 import java.math.BigInteger
 
-//@Serializable
 class ECDSASignature(val r: BigInteger, val s: BigInteger) {
     /**
      * @return true if the S component is "low", that means it is below [     ][Sign.HALF_CURVE_ORDER]. See [
