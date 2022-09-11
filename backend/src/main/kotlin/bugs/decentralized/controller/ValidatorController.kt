@@ -53,8 +53,6 @@ class ValidatorController @Autowired constructor(
             return HttpStatus.CONFLICT
         }
 
-        // TODO for Andrei: validate the transaction and add it to a pool
-
         val decryptedHash = RSA.decryptString(transaction.signature, )
 
         val computedHash = transaction.hash

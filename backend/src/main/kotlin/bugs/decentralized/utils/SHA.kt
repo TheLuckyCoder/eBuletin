@@ -3,13 +3,14 @@ package bugs.decentralized.utils
 import java.security.MessageDigest
 
 object SHA {
-    fun sha256(input: String) = hashString("SHA-256", input)
+    fun sha256(input: String) = hashString("SHA-256", input).toHexString()
 
-    private fun hashString(type: String, input: String): String {
-        val bytes = MessageDigest
+    fun sha256Bytes(input: String) = hashString("SHA-256", input)
+
+    private fun hashString(type: String, input: String): ByteArray {
+        return MessageDigest
             .getInstance(type)
             .digest(input.toByteArray())
-        return bytes.toHexString()
     }
 }
 
