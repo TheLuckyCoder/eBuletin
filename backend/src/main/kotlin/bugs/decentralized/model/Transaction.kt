@@ -2,8 +2,13 @@ package bugs.decentralized.model
 
 import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.StringMap
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
+import java.security.PrivateKey
+import java.security.Signature
 
 /**
  * See https://ethereum.org/en/developers/docs/transactions/
@@ -17,8 +22,7 @@ data class Transaction(
     val data: TransactionData,
     /**
      * The signature is the [data] hashed with SHA-3 and signed with the senders private key
-     * If valid, we should be able to derive a [PublicAccountKey] form the [signature] and [data]
-     * which then should lead to a valid [AccountAddress]
+     * If valid, we are be able to derive form the [signature] and [data] the [PublicAccountKey] of the [sender]
      *
      * See https://goethereumbook.org/signature-verify/
      * https://ethereum.stackexchange.com/questions/13778/get-public-key-of-any-ethereum-account/13892
@@ -29,10 +33,33 @@ data class Transaction(
      * This must be unique per sender
      */
     val nonce: ULong,
-    // TODO: Should we include the signature in the hash?
     @Id
-    val hash: String = SHA.sha256(sender.value + receiver.value + data + signature + nonce)
-)
+    val hash: String = SHA.sha256(sender.value + receiver.value + data + nonce)
+) {
+
+    companion object {
+        @OptIn(ExperimentalSerializationApi::class)
+        private val json = Json {
+            explicitNulls = false
+        }
+
+        fun create(
+            sender: AccountAddress,
+            receiver: AccountAddress,
+            data: TransactionData,
+            privateKey: PrivateKey,
+            nonce: ULong
+        ): Transaction {
+            val signature = Signature.getInstance ("SHA256withECDSA").apply {
+                initSign(privateKey)
+                update(json.encodeToString(data).toByteArray())
+                sign()
+            }
+
+            return Transaction(sender, receiver, data, signature, nonce)
+        }
+    }
+}
 
 /*{
     "transactionData": {

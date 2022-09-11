@@ -5,7 +5,10 @@ import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
+import bugs.decentralized.repository.TransactionsRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 /**
@@ -13,11 +16,14 @@ import org.springframework.web.bind.annotation.*
  */
 @RestController
 class ValidatorController @Autowired constructor(
+    private val nodesSerice: NodesService,
     private val blockRepository: BlockRepository,
     private val nodesRepository: NodesRepository,
 ) {
 
-    @GetMapping("ping")
+    private val transactionsRepository = TransactionsRepository
+
+    @GetMapping("/ping")
     fun ping(): String {
         return "OK"
     }
@@ -34,15 +40,27 @@ class ValidatorController @Autowired constructor(
         return blockRepository.findById(blockNumberLong).get()
     }
 
-    // Show all transactions in the transaction pool.
-    /*@GetMapping("/transactions")
+    @GetMapping("/transactions")
     fun transactions(): List<Transaction> {
-        return transactionsRepository.findAll()
-    }*/
+        return transactionsRepository.transactionsPool.toList()
+    }
 
     @PostMapping("/transactions")
-    fun newTransaction(@RequestBody transaction: Transaction) {
+    fun newTransaction(@RequestBody transaction: Transaction): HttpStatus {
+        val hash = transaction.hash
+        if (transactionsRepository.transactionsPool.any { it.hash == hash }) {
+            return HttpStatus.CONFLICT
+        }
+
         // TODO for Andrei: validate the transaction and add it to a pool
+
+        var isValid = true
+        if (isValid) {
+            nodesSerice.sendTransaction()
+            return HttpStatus.OK
+        }
+
+        return HttpStatus.BAD_REQUEST
     }
 
     @GetMapping("/nodes")
@@ -50,8 +68,13 @@ class ValidatorController @Autowired constructor(
         return nodesRepository.findAll()
     }
 
-    @PutMapping("/node")
-    fun node(@RequestBody node: Node) {
-        nodesRepository.save(node)
+    @PutMapping("/nodes")
+    fun nodes(@RequestBody nodes: List<Node>) {
+        for (node in nodes) {
+            if (nodesRepository.findByIdOrNull(node.address) == null) {
+                if (nodesSerice.doesNodeExist(node.url))
+                    nodesRepository.save(node) // Only add active nodes to the database
+            }
+        }
     }
 }
