@@ -56,7 +56,7 @@ class ValidatorController @Autowired constructor(
 
         var isValid = true
         if (isValid) {
-            nodesSerice.sendTransaction()
+//            nodesSerice.sendTransaction()
             return HttpStatus.OK
         }
 

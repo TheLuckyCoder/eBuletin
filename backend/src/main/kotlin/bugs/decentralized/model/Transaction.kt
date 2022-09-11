@@ -2,6 +2,7 @@ package bugs.decentralized.model
 
 import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.StringMap
+import bugs.decentralized.utils.toHexString
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -53,10 +54,10 @@ data class Transaction(
             val signature = Signature.getInstance ("SHA256withECDSA").apply {
                 initSign(privateKey)
                 update(json.encodeToString(data).toByteArray())
-                sign()
-            }
 
-            return Transaction(sender, receiver, data, signature, nonce)
+            }.sign()
+
+            return Transaction(sender, receiver, data, signature.toHexString(), nonce)
         }
     }
 }

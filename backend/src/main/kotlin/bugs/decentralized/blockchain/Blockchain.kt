@@ -15,7 +15,7 @@ class Blockchain(
     /***Why doesn't it work
      * I don't get it
      * please help*/
-    private val validatorController = ValidatorController(blockRepository, nodesRepository)
+    private val validatorController: ValidatorController = TODO()
     var waitTime: ULong = 0UL
 
     fun mineBlock(transactions: List<Transaction>): Block {
