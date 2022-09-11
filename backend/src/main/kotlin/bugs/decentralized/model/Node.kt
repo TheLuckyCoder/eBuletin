@@ -5,14 +5,14 @@ import kotlin.random.Random.Default.nextLong
 
 data class Node(
     @Id
-    val id: String,
+    val address: String,
     val url: String,
     var isLeader: Boolean = false,
     var mineTime: ULong = 0UL
 ) {
 
     override fun toString(): String {
-        return "$id:$url"
+        return "$address:$url"
     }
 
     fun assignMiningTime() {

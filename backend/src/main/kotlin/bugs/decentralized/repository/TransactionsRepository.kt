@@ -5,5 +5,6 @@ import java.util.*
 
 object TransactionsRepository {
 
-    private val transactionsPool: MutableList<Transaction> = Collections.synchronizedList(emptyList())
+    // These includ all valid transactions that haven't been added to a block yet
+    val transactionsPool: MutableList<Transaction> = Collections.synchronizedList(emptyList())
 }

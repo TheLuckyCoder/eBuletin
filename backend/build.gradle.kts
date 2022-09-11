@@ -21,7 +21,6 @@ dependencies {
 //	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 	implementation("org.springframework.boot:spring-boot-starter-data-rest")
-//	implementation("org.springframework.boot:spring-boot-starter-data-web")
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
 
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
