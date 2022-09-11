@@ -5,6 +5,7 @@ import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
+import bugs.decentralized.utils.RSA
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -43,6 +44,15 @@ class ValidatorController @Autowired constructor(
     @PostMapping("/transactions")
     fun newTransaction(@RequestBody transaction: Transaction) {
         // TODO for Andrei: validate the transaction and add it to a pool
+
+        val decryptedHash = RSA.decryptString(transaction.signature, )
+
+        val computedHash = transaction.hash
+
+        if(decryptedHash == computedHash)
+        {
+
+        }
     }
 
     @GetMapping("/nodes")

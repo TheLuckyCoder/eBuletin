@@ -5,7 +5,8 @@ import kotlinx.serialization.json.Json
 import java.security.Key
 import javax.crypto.Cipher
 
-object RSA {
+object RSA
+{
 
     fun encryptString(data: String, publicKey: Key): String {
         val encryptCipher: Cipher = Cipher.getInstance("RSA")
@@ -15,4 +16,11 @@ object RSA {
 
     inline fun <reified T> encrypt(data: T, publicKey: Key): String =
         encryptString(Json.encodeToString(data), publicKey)
+
+    fun decryptString(data: String, key: Key) : String
+    {
+        val decrypter: Cipher = Cipher.getInstance("RSA")
+        decrypter.init(Cipher.DECRYPT_MODE, key)
+        return decrypter.doFinal(data.toByteArray())!!.toHexString()
+    }
 }
