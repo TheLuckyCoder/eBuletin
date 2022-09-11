@@ -7,12 +7,17 @@ import org.bouncycastle.crypto.ec.CustomNamedCurves
 import org.bouncycastle.crypto.params.ECDomainParameters
 import org.bouncycastle.math.ec.ECAlgorithms
 import org.bouncycastle.math.ec.ECPoint
+import org.bouncycastle.math.ec.FixedPointCombMultiplier
 import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve
 import java.math.BigInteger
 import java.security.SignatureException
+import java.util.*
 
 
-object ECDSA {
+/**
+ * https://github.com/web3j/web3j/blob/master/crypto/src/main/java/org/web3j/crypto/Sign.java
+ */
+object Sign {
 
     val CURVE_PARAMS: X9ECParameters = CustomNamedCurves.getByName("secp256k1")
     const val CHAIN_ID_INC = 35
@@ -36,7 +41,7 @@ object ECDSA {
     }
 
     @Throws(SignatureException::class)
-    fun signedMessageHashToKey(messageHash: ByteArray?, signatureData: SignatureData): BigInteger {
+    fun signedMessageHashToKey(messageHash: ByteArray, signatureData: SignatureData): BigInteger {
         require(signatureData.r.size == 32) { "r must be 32 bytes" }
         require(signatureData.s.size == 32) { "s must be 32 bytes" }
         val header: Int = signatureData.v[0].toInt() and 0xFF
@@ -54,16 +59,16 @@ object ECDSA {
             ?: throw SignatureException("Could not recover public key from signature")
     }
 
-    fun recoverFromSignature(recId: Int, sig: ECDSASignature, message: ByteArray?): BigInteger? {
-//        verifyPrecondition(recId >= 0 && recId <= 3, "recId must be in the range of [0, 3]")
-//        verifyPrecondition(sig.r.signum() >= 0, "r must be positive")
-//        verifyPrecondition(sig.s.signum() >= 0, "s must be positive")
+    fun recoverFromSignature(recId: Int, sig: ECDSASignature, message: ByteArray): BigInteger? {
+        require(recId in 0..3) { "recId must be in the range of [0, 3]" }
+        require(sig.r.signum() >= 0) { "r must be positive" }
+        require(sig.s.signum() >= 0) { "s must be positive" }
 
         // 1.0 For j from 0 to h   (h == recId here and the loop is outside this function)
         //   1.1 Let x = r + jn
-        val n: BigInteger = CURVE.n // Curve order.
-        val i: BigInteger = BigInteger.valueOf(recId.toLong() / 2)
-        val x: BigInteger = sig.r.add(i.multiply(n))
+        val n = CURVE.n // Curve order.
+        val i = BigInteger.valueOf(recId.toLong() / 2)
+        val x = sig.r.add(i.multiply(n))
         //   1.2. Convert the integer x to an octet string X of length mlen using the conversion
         //        routine specified in Section 2.3.7, where mlen = ⌈(log2 p)/8⌉ or mlen = ⌈m/8⌉.
         //   1.3. Convert the octet string (16 set binary digits)||X to an elliptic curve point R
@@ -71,8 +76,7 @@ object ECDSA {
         //        routine outputs "invalid", then do another iteration of Step 1.
         //
         // More concisely, what these points mean is to use X as a compressed public key.
-        val prime: BigInteger = SecP256K1Curve.q
-        if (x.compareTo(prime) >= 0) {
+        if (x >= SecP256K1Curve.q) {
             // Cannot have point co-ordinates larger than this as everything takes place modulo Q.
             return null
         }
@@ -81,7 +85,7 @@ object ECDSA {
         val R: ECPoint = decompressKey(x, recId and 1 == 1)
         //   1.4. If nR != point at infinity, then do another iteration of Step 1 (callers
         //        responsibility).
-        if (!R.multiply(n).isInfinity()) {
+        if (!R.multiply(n).isInfinity) {
             return null
         }
         //   1.5. Compute e from M using Steps 2 and 3 of ECDSA signature verification.
@@ -100,12 +104,12 @@ object ECDSA {
         // We can find the additive inverse by subtracting e from zero then taking the mod. For
         // example the additive inverse of 3 modulo 11 is 8 because 3 + 8 mod 11 = 0, and
         // -3 mod 11 = 8.
-        val eInv: BigInteger = BigInteger.ZERO.subtract(e).mod(n)
-        val rInv: BigInteger = sig.r.modInverse(n)
-        val srInv: BigInteger = rInv.multiply(sig.s).mod(n)
-        val eInvrInv: BigInteger = rInv.multiply(eInv).mod(n)
-        val q: ECPoint = ECAlgorithms.sumOfTwoMultiplies(CURVE.getG(), eInvrInv, R, srInv)
-        val qBytes: ByteArray = q.getEncoded(false)
+        val eInv = BigInteger.ZERO.subtract(e).mod(n)
+        val rInv = sig.r.modInverse(n)
+        val srInv = rInv.multiply(sig.s).mod(n)
+        val eInvrInv = rInv.multiply(eInv).mod(n)
+        val q = ECAlgorithms.sumOfTwoMultiplies(CURVE.g, eInvrInv, R, srInv)
+        val qBytes = q.getEncoded(false)
         // We remove the prefix
         return BigInteger(1, qBytes.copyOfRange(1, qBytes.size))
     }
@@ -117,5 +121,67 @@ object ECDSA {
         return CURVE.curve.decodePoint(compEnc)
     }
 
+    fun signBytes(message: ByteArray, keyPair: ECKeyPair): SignatureData {
+        val publicKey = keyPair.publicKey
+        val sig = keyPair.sign(message)
+        return createSignatureData(sig, publicKey, message)
+    }
 
+    private fun createSignatureData(sig: ECDSASignature, publicKey: BigInteger, messageHash: ByteArray): SignatureData {
+        // Now we have to work backwards to figure out the recId needed to recover the signature.
+        var recId = -1
+        for (i in 0..3) {
+            val k = recoverFromSignature(i, sig, messageHash)
+            if (k != null && k == publicKey) {
+                recId = i
+                break
+            }
+        }
+        if (recId == -1) {
+            throw RuntimeException(
+                "Could not construct a recoverable key. Are your credentials valid?"
+            )
+        }
+        val headerByte = recId + 27
+
+        // 1 header + 32 bytes for R + 32 bytes for S
+        val v = byteArrayOf(headerByte.toByte())
+        val r = toBytesPadded(sig.r, 32)
+        val s = toBytesPadded(sig.s, 32)
+        return SignatureData(v, r, s)
+    }
+
+    fun publicKeyFromPrivate(privateKey: BigInteger): BigInteger {
+        val point: ECPoint = publicPointFromPrivate(privateKey)
+        val encoded = point.getEncoded(false)
+        return BigInteger(1, Arrays.copyOfRange(encoded, 1, encoded.size)) // remove prefix
+    }
+
+    fun publicPointFromPrivate(privateKey: BigInteger): ECPoint {
+        var privKey = privateKey
+        if (privKey.bitLength() > CURVE.n.bitLength()) {
+            privKey = privKey.mod(CURVE.n)
+        }
+        return FixedPointCombMultiplier().multiply(CURVE.g, privKey)
+    }
+
+    private fun toBytesPadded(value: BigInteger, length: Int): ByteArray {
+        val result = ByteArray(length)
+        val bytes = value.toByteArray()
+        val bytesLength: Int
+        val srcOffset: Int
+        if (bytes[0].toInt() == 0) {
+            bytesLength = bytes.size - 1
+            srcOffset = 1
+        } else {
+            bytesLength = bytes.size
+            srcOffset = 0
+        }
+        if (bytesLength > length) {
+            throw RuntimeException("Input is too large to put in byte array of size $length")
+        }
+        val destOffset = length - bytesLength
+        System.arraycopy(bytes, srcOffset, result, destOffset, bytesLength)
+        return result
+    }
 }

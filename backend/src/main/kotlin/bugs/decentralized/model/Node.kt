@@ -17,6 +17,6 @@ data class Node(
 
     fun assignMiningTime() {
         if (!isLeader)
-            mineTime = nextLong().toULong()
+            mineTime = nextLong().toULong() // TODO Should use a SecureRandom generator
     }
 }

@@ -9,7 +9,7 @@ class ECDSASignature(val r: BigInteger, val s: BigInteger) {
  * BIP62](https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#Low_S_values_in_signatures).
      */
     val isCanonical: Boolean
-        get() = s.compareTo(ECDSA.HALF_CURVE_ORDER) <= 0
+        get() = s <= Sign.HALF_CURVE_ORDER
 
     /**
      * Will automatically adjust the S component to be less than or equal to half the curve order,
@@ -29,7 +29,7 @@ class ECDSASignature(val r: BigInteger, val s: BigInteger) {
             //    N = 10
             //    s = 8, so (-8 % 10 == 2) thus both (r, 8) and (r, 2) are valid solutions.
             //    10 - 8 == 2, giving us always the latter solution, which is canonical.
-            ECDSASignature(r, ECDSA.CURVE.getN().subtract(s))
+            ECDSASignature(r, Sign.CURVE.getN().subtract(s))
         } else {
             this
         }
