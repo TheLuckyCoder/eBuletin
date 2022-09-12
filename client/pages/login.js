@@ -15,7 +15,7 @@ import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
   const router = useRouter();
-  const { error, isLoading, login, encryptedPrivateKey } = useAuth();
+  const { error, isLoading, login, encryptedPrivateKey, onImport } = useAuth();
   const {
     handleSubmit,
     control,
@@ -27,9 +27,15 @@ const Login = () => {
     },
   });
 
-  const handleLogin = (data) => {
-    login(data.password);
+  const onSubmit = (data) => {
+    if (!encryptedPrivateKey) {
+      console.log("import ");
+      onImport(data);
+    } else {
+      login(data.password);
+    }
   };
+  console.log(encryptedPrivateKey, !encryptedPrivateKey);
 
   return (
     <Box
@@ -45,7 +51,7 @@ const Login = () => {
       }}
     >
       <Card elevation={12}>
-        <form onSubmit={handleSubmit(handleLogin)}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent
             sx={{
               display: "flex",
@@ -55,7 +61,7 @@ const Login = () => {
             }}
           >
             <Typography variant="h4" textAlign="center">
-              Log in!
+              {!encryptedPrivateKey ? "Import Account" : " Log in!"}
             </Typography>
             {!encryptedPrivateKey && (
               <ControlledTextField
@@ -81,7 +87,7 @@ const Login = () => {
               sx={{ maxWidth: "200px" }}
               type="submit"
             >
-              Log in
+              {!encryptedPrivateKey ? "Import" : "Log in!"}
             </Button>
             <Link
               component="button"
