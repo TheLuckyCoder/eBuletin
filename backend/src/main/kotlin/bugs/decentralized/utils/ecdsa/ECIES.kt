@@ -163,7 +163,7 @@ object ECIES {
     fun decrypt(privateKeyBytes: ByteArray, cipherBytes: ByteArray): ByteArray {
         val ecSpec: ECNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec(CURVE_NAME)
         val keyFactory = getKeyFactory()
-        val curvedParams: org.bouncycastle.jce.spec.ECNamedCurveSpec = ECNamedCurveSpec(CURVE_NAME, ecSpec.getCurve(), ecSpec.getG(), ecSpec.getN())
+        val curvedParams = ECNamedCurveSpec(CURVE_NAME, ecSpec.getCurve(), ecSpec.getG(), ecSpec.getN())
 
         //generate receiver private key
         val privateKeySpec = ECPrivateKeySpec(BigInteger(1, privateKeyBytes), curvedParams)

@@ -11,8 +11,5 @@ import java.security.Security
 class BlockchainApplication
 
 fun main(args: Array<String>) {
-    Security.removeProvider("BC")
-    Security.addProvider(BouncyCastleProvider())
-
     runApplication<BlockchainApplication>(*args)
 }

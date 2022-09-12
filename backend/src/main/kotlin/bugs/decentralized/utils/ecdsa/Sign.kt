@@ -5,11 +5,13 @@ import org.bouncycastle.asn1.x9.X9ECParameters
 import org.bouncycastle.asn1.x9.X9IntegerConverter
 import org.bouncycastle.crypto.ec.CustomNamedCurves
 import org.bouncycastle.crypto.params.ECDomainParameters
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.math.ec.ECAlgorithms
 import org.bouncycastle.math.ec.ECPoint
 import org.bouncycastle.math.ec.FixedPointCombMultiplier
 import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve
 import java.math.BigInteger
+import java.security.Security
 import java.security.SignatureException
 import java.util.*
 
@@ -82,7 +84,7 @@ object Sign {
         }
         // Compressed keys require you to know an extra bit of data about the y-coord as there are
         // two possibilities. So it's encoded in the recId.
-        val R: ECPoint = decompressKey(x, recId and 1 == 1)
+        val R: ECPoint = decompressKey(x, (recId and 1) == 1)
         //   1.4. If nR != point at infinity, then do another iteration of Step 1 (callers
         //        responsibility).
         if (!R.multiply(n).isInfinity) {
@@ -183,5 +185,10 @@ object Sign {
         val destOffset = length - bytesLength
         System.arraycopy(bytes, srcOffset, result, destOffset, bytesLength)
         return result
+    }
+
+    init {
+        Security.removeProvider("BC")
+        Security.addProvider(BouncyCastleProvider())
     }
 }
