@@ -74,7 +74,7 @@ class ValidatorController @Autowired constructor(
     fun nodes(@RequestBody nodes: List<Node>) {
         for (node in nodes) {
             if (nodesRepository.findByIdOrNull(node.address) == null) {
-                if (nodesService.doesNodeExist(node.url))
+                if (nodesService.nodeIsAlive(node.url))
                     nodesRepository.save(node) // Only add active nodes to the database
             }
         }

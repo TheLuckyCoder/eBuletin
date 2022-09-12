@@ -59,7 +59,7 @@ object Sign {
             ?: throw SignatureException("Could not recover public key from signature")
     }
 
-    fun recoverFromSignature(recId: Int, sig: ECDSASignature, message: ByteArray): BigInteger? {
+    private fun recoverFromSignature(recId: Int, sig: ECDSASignature, message: ByteArray): BigInteger? {
         require(recId in 0..3) { "recId must be in the range of [0, 3]" }
         require(sig.r.signum() >= 0) { "r must be positive" }
         require(sig.s.signum() >= 0) { "s must be positive" }
