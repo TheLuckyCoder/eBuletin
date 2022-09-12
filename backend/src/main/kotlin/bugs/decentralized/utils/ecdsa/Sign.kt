@@ -3,14 +3,21 @@ package bugs.decentralized.utils.ecdsa
 import bugs.decentralized.utils.SHA
 import org.bouncycastle.asn1.x9.X9ECParameters
 import org.bouncycastle.asn1.x9.X9IntegerConverter
+import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.ec.CustomNamedCurves
 import org.bouncycastle.crypto.params.ECDomainParameters
+import org.bouncycastle.crypto.params.ECPrivateKeyParameters
+import org.bouncycastle.crypto.signers.ECDSASigner
+import org.bouncycastle.crypto.signers.HMacDSAKCalculator
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.math.ec.ECAlgorithms
 import org.bouncycastle.math.ec.ECPoint
 import org.bouncycastle.math.ec.FixedPointCombMultiplier
 import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve
 import java.math.BigInteger
+import java.security.KeyPair
 import java.security.Security
 import java.security.SignatureException
 import java.util.*
@@ -20,6 +27,70 @@ import java.util.*
  * https://github.com/web3j/web3j/blob/master/crypto/src/main/java/org/web3j/crypto/Sign.java
  */
 object Sign {
+
+    class ECKeyPair(val privateKey: BigInteger, val publicKey: BigInteger) {
+
+        /**
+         * Sign a hash with the private key of this key pair.
+         *
+         * @param transactionHash the hash to sign
+         * @return An [ECDSASignature] of the hash
+         */
+        fun sign(transactionHash: ByteArray): ECDSASignature {
+            val signer = ECDSASigner(HMacDSAKCalculator(SHA256Digest()))
+            val privKey = ECPrivateKeyParameters(privateKey, Sign.CURVE)
+            signer.init(true, privKey)
+            val components: Array<BigInteger> = signer.generateSignature(transactionHash)
+            return ECDSASignature(components[0], components[1]).toCanonicalised()
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) {
+                return true
+            }
+            if (other == null || javaClass != other.javaClass) {
+                return false
+            }
+            val ecKeyPair = other as ECKeyPair
+            if (privateKey != ecKeyPair.privateKey) {
+                return false
+            }
+            return publicKey == ecKeyPair.publicKey
+        }
+
+        override fun hashCode(): Int {
+            var result = privateKey.hashCode()
+            result = 31 * result + publicKey.hashCode()
+            return result
+        }
+
+        companion object {
+
+            fun create(keyPair: KeyPair): ECKeyPair {
+                val privateKey = keyPair.private as BCECPrivateKey
+                val publicKey = keyPair.public as BCECPublicKey
+                val privateKeyValue = privateKey.d
+
+                // Ethereum does not use encoded public keys like bitcoin - see
+                // https://en.bitcoin.it/wiki/Elliptic_Curve_Digital_Signature_Algorithm for details
+                // Additionally, as the first bit is a constant prefix (0x04) we ignore this value
+                val publicKeyBytes: ByteArray = publicKey.q.getEncoded(false)
+                val publicKeyValue = BigInteger(1, publicKeyBytes.copyOfRange(1, publicKeyBytes.size))
+                return ECKeyPair(privateKeyValue, publicKeyValue)
+            }
+
+            fun create(keyPair: ECIES.ECKeyPair): ECKeyPair {
+                val privateKeyValue = keyPair.private.d
+                val publicKeyBytes: ByteArray = keyPair.getPublicBinary(false)
+                val publicKeyValue = BigInteger(1, publicKeyBytes.copyOfRange(1, publicKeyBytes.size))
+                return ECKeyPair(privateKeyValue, publicKeyValue)
+            }
+
+            fun create(privateKey: BigInteger): ECKeyPair {
+                return ECKeyPair(privateKey, publicKeyFromPrivate(privateKey))
+            }
+        }
+    }
 
     val CURVE_PARAMS: X9ECParameters = CustomNamedCurves.getByName("secp256k1")
     const val CHAIN_ID_INC = 35
@@ -123,7 +194,7 @@ object Sign {
         return CURVE.curve.decodePoint(compEnc)
     }
 
-    fun signBytes(message: ByteArray, keyPair: ECKeyPair): SignatureData {
+    fun signBytes(message: ByteArray, keyPair: Sign.ECKeyPair): SignatureData {
         val publicKey = keyPair.publicKey
         val sig = keyPair.sign(message)
         return createSignatureData(sig, publicKey, message)

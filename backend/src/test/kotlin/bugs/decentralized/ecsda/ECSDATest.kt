@@ -2,14 +2,9 @@ package bugs.decentralized.ecsda
 
 import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.ecdsa.ECIES
-import bugs.decentralized.utils.ecdsa.ECKeyPair
 import bugs.decentralized.utils.ecdsa.Sign
-import org.bouncycastle.asn1.x509.ObjectDigestInfo.publicKey
-import org.bouncycastle.util.encoders.Hex
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
-import java.math.BigInteger
-import java.nio.charset.Charset
 
 @SpringBootTest
 class ECSDATest {
@@ -21,23 +16,17 @@ class ECSDATest {
         val encrypted = ECIES.encrypt(originalKeyPair.getPublicHex(false), str)
         val decrypted = ECIES.decrypt(originalKeyPair.privateHex, encrypted)
 
-        assert(str == decrypted)
+        check(str == decrypted)
     }
 
     @Test
     fun testSigning() {
         val str = "Hello"
-        val originalKeyPair = ECIES.generateEcKeyPair()
 
-        val keyPair = ECKeyPair(
-            BigInteger(originalKeyPair.privateHex, 16),
-            BigInteger(originalKeyPair.getPublicHex(false), 16)
-        )
+        val keyPair = Sign.ECKeyPair.create(ECIES.generateEcKeyPair())
         val signatureData = Sign.signBytes(SHA.sha256Bytes(str), keyPair)
         val publicKey = Sign.signedMessageToKey(str, signatureData)
 
-
-        val encode = publicKey.toString(16)
-        assert(encode == originalKeyPair.getPublicHex(false))
+        check(keyPair.publicKey == publicKey)
     }
 }

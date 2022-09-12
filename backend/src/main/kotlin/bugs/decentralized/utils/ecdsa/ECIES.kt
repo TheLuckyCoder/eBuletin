@@ -76,7 +76,7 @@ object ECIES {
             get() = Hex.toHexString(privateBinary)
     }
 
-    private const val CURVE_NAME = "secp256k1"
+    const val CURVE_NAME = "secp256k1"
     private const val UNCOMPRESSED_PUBLIC_KEY_SIZE = 65
     private const val AES_IV_LENGTH = 16
     private const val AES_TAG_LENGTH = 16
@@ -161,19 +161,19 @@ object ECIES {
     fun decrypt(privateKeyBytes: ByteArray, cipherBytes: ByteArray): ByteArray {
         val ecSpec: ECNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec(CURVE_NAME)
         val keyFactory = getKeyFactory()
-        val curvedParams = ECNamedCurveSpec(CURVE_NAME, ecSpec.getCurve(), ecSpec.getG(), ecSpec.getN())
+        val curvedParams = ECNamedCurveSpec(CURVE_NAME, ecSpec.curve, ecSpec.g, ecSpec.n)
 
         //generate receiver private key
         val privateKeySpec = ECPrivateKeySpec(BigInteger(1, privateKeyBytes), curvedParams)
         val receiverPrivKey: ECPrivateKey = keyFactory.generatePrivate(privateKeySpec) as ECPrivateKey
 
         //get sender pub key
-        val senderPubKeyByte: ByteArray = Arrays.copyOf(cipherBytes, UNCOMPRESSED_PUBLIC_KEY_SIZE)
+        val senderPubKeyByte: ByteArray = cipherBytes.copyOf(UNCOMPRESSED_PUBLIC_KEY_SIZE)
         val senderPubKey: ECPublicKey = getEcPublicKey(curvedParams, senderPubKeyByte, keyFactory)
 
         //decapsulate
-        val uncompressed: ByteArray = senderPubKey.getQ().getEncoded(false)
-        val multiply: ByteArray = senderPubKey.getQ().multiply(receiverPrivKey.d).getEncoded(false)
+        val uncompressed: ByteArray = senderPubKey.q.getEncoded(false)
+        val multiply: ByteArray = senderPubKey.q.multiply(receiverPrivKey.d).getEncoded(false)
         val aesKey = hkdf(uncompressed, multiply)
 
         // AES decryption

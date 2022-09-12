@@ -2,17 +2,13 @@ package bugs.decentralized.model
 
 import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.StringMap
-import bugs.decentralized.utils.ecdsa.ECKeyPair
 import bugs.decentralized.utils.ecdsa.Sign
 import bugs.decentralized.utils.ecdsa.SignatureData
-import bugs.decentralized.utils.toHexString
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
-import java.security.PrivateKey
-import java.security.Signature
 
 /**
  * See https://ethereum.org/en/developers/docs/transactions/
@@ -51,7 +47,7 @@ data class Transaction(
             sender: AccountAddress,
             receiver: AccountAddress,
             data: TransactionData,
-            keyPair: ECKeyPair,
+            keyPair: Sign.ECKeyPair,
             nonce: ULong
         ): Transaction {
             val signature = Sign.signBytes(SHA.sha256Bytes(json.encodeToString(data)), keyPair)
