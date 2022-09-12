@@ -15,6 +15,16 @@ import java.nio.charset.Charset
 class ECSDATest {
 
     @Test
+    fun testEncryptionDecryption() {
+        val str = "Hello"
+        val originalKeyPair = ECIES.generateEcKeyPair()
+        val encrypted = ECIES.encrypt(originalKeyPair.getPublicHex(false), str)
+        val decrypted = ECIES.decrypt(originalKeyPair.privateHex, encrypted)
+
+        assert(str == decrypted)
+    }
+
+    @Test
     fun testSigning() {
         val str = "Hello"
         val originalKeyPair = ECIES.generateEcKeyPair()

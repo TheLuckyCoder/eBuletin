@@ -35,7 +35,7 @@ object Sign {
         CURVE_PARAMS.n,
         CURVE_PARAMS.h
     )
-    val HALF_CURVE_ORDER = CURVE_PARAMS.n.shiftRight(1)
+    val HALF_CURVE_ORDER: BigInteger = CURVE_PARAMS.n.shiftRight(1)
 
     @Throws(SignatureException::class)
     fun signedMessageToKey(message: String, signatureData: SignatureData): BigInteger {

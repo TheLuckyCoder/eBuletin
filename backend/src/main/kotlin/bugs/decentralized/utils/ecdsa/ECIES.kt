@@ -2,7 +2,6 @@ package bugs.decentralized.utils.ecdsa
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.bouncycastle.asn1.x509.ObjectDigestInfo.publicKey
 import org.bouncycastle.crypto.BufferedBlockCipher
 import org.bouncycastle.crypto.CipherParameters
 import org.bouncycastle.crypto.InvalidCipherTextException
@@ -25,7 +24,6 @@ import org.bouncycastle.util.encoders.Hex
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.InvalidAlgorithmParameterException
-import java.security.Key
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -135,12 +133,12 @@ object ECIES {
     fun encrypt(publicKeyBytes: ByteArray, message: ByteArray): ByteArray {
         val ecSpec: ECNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec(CURVE_NAME)
         val pair: KeyPair = generateEphemeralKey(ecSpec)
-        val ephemeralPrivKey: ECPrivateKey = pair.getPrivate() as ECPrivateKey
+        val ephemeralPrivKey: ECPrivateKey = pair.private as ECPrivateKey
         val ephemeralPubKey: ECPublicKey = pair.getPublic() as ECPublicKey
 
         //generate receiver PK
         val keyFactory = getKeyFactory()
-        val curvedParams: ECNamedCurveSpec =
+        val curvedParams =
             ECNamedCurveSpec(CURVE_NAME, ecSpec.getCurve(), ecSpec.getG(), ecSpec.getN())
         val publicKey: ECPublicKey = getEcPublicKey(curvedParams, publicKeyBytes, keyFactory)
 
