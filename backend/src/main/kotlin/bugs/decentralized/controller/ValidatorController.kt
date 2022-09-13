@@ -38,10 +38,10 @@ class ValidatorController @Autowired constructor(
     }
 
     @GetMapping("/block/{blockNumber}")
-    fun block(@PathVariable blockNumber: String): Block {
+    fun block(@PathVariable blockNumber: String): Block? {
         val blockNumberLong = blockNumber.toULong()
 
-        return blockRepository.findById(blockNumberLong).get()
+        return blockRepository.findByIdOrNull(blockNumberLong)
     }
 
     @GetMapping("/transactions")

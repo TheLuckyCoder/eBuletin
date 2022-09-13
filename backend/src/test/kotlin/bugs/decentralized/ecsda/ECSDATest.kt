@@ -24,7 +24,7 @@ class ECSDATest {
         val str = "Hello"
 
         val keyPair = Sign.ECKeyPair.create(ECIES.generateEcKeyPair())
-        val signatureData = Sign.signBytes(SHA.sha256Bytes(str), keyPair)
+        val signatureData = Sign.sign(str, keyPair)
         val publicKey = Sign.signedMessageToKey(str, signatureData)
 
         check(keyPair.publicKey == publicKey)

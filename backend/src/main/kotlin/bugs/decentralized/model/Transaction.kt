@@ -34,7 +34,7 @@ data class Transaction(
      */
     val nonce: ULong,
     @Id
-    val hash: String = SHA.sha256(sender.value + receiver.value + data + nonce)
+    val hash: String = SHA.sha256Hex(sender.value + receiver.value + data + nonce)
 ) {
 
     companion object {
@@ -50,7 +50,7 @@ data class Transaction(
             keyPair: Sign.ECKeyPair,
             nonce: ULong
         ): Transaction {
-            val signature = Sign.signBytes(SHA.sha256Bytes(json.encodeToString(data)), keyPair)
+            val signature = Sign.sign(json.encodeToString(data), keyPair)
 
             return Transaction(sender, receiver, data, signature, nonce)
         }

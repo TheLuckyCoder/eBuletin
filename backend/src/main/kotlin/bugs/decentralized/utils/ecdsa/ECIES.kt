@@ -1,5 +1,6 @@
 package bugs.decentralized.utils.ecdsa
 
+import bugs.decentralized.model.PublicAccountKey
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.bouncycastle.crypto.BufferedBlockCipher
@@ -76,7 +77,7 @@ object ECIES {
             get() = Hex.toHexString(privateBinary)
     }
 
-    const val CURVE_NAME = "secp256k1"
+    private const val CURVE_NAME = "secp256k1"
     private const val UNCOMPRESSED_PUBLIC_KEY_SIZE = 65
     private const val AES_IV_LENGTH = 16
     private const val AES_TAG_LENGTH = 16
@@ -134,12 +135,12 @@ object ECIES {
         val ecSpec: ECNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec(CURVE_NAME)
         val pair: KeyPair = generateEphemeralKey(ecSpec)
         val ephemeralPrivKey: ECPrivateKey = pair.private as ECPrivateKey
-        val ephemeralPubKey: ECPublicKey = pair.getPublic() as ECPublicKey
+        val ephemeralPubKey: ECPublicKey = pair.public as ECPublicKey
 
         //generate receiver PK
         val keyFactory = getKeyFactory()
         val curvedParams =
-            ECNamedCurveSpec(CURVE_NAME, ecSpec.getCurve(), ecSpec.getG(), ecSpec.getN())
+            ECNamedCurveSpec(CURVE_NAME, ecSpec.curve, ecSpec.getG(), ecSpec.getN())
         val publicKey: ECPublicKey = getEcPublicKey(curvedParams, publicKeyBytes, keyFactory)
 
         //Derive shared secret
@@ -257,7 +258,7 @@ object ECIES {
     }
 
 
-    inline fun <reified T> encrypt(publicKeyHex: String, data: T): String =
-        encrypt(publicKeyHex, Json.encodeToString(data))
+    inline fun <reified T> encrypt(publicKeyHex: PublicAccountKey, data: T): String =
+        encrypt(publicKeyHex.value, Json.encodeToString(data))
 
 }

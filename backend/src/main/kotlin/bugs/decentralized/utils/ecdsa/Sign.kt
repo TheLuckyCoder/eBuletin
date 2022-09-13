@@ -38,7 +38,7 @@ object Sign {
          */
         fun sign(transactionHash: ByteArray): ECDSASignature {
             val signer = ECDSASigner(HMacDSAKCalculator(SHA256Digest()))
-            val privKey = ECPrivateKeyParameters(privateKey, Sign.CURVE)
+            val privKey = ECPrivateKeyParameters(privateKey, CURVE)
             signer.init(true, privKey)
             val components: Array<BigInteger> = signer.generateSignature(transactionHash)
             return ECDSASignature(components[0], components[1]).toCanonicalised()
@@ -194,10 +194,14 @@ object Sign {
         return CURVE.curve.decodePoint(compEnc)
     }
 
-    fun signBytes(message: ByteArray, keyPair: Sign.ECKeyPair): SignatureData {
+    fun sign(message: String, keyPair: ECKeyPair): SignatureData {
+        return sign(SHA.sha256Bytes(message), keyPair)
+    }
+
+    fun sign(messageHash: ByteArray, keyPair: ECKeyPair): SignatureData {
         val publicKey = keyPair.publicKey
-        val sig = keyPair.sign(message)
-        return createSignatureData(sig, publicKey, message)
+        val sig = keyPair.sign(messageHash)
+        return createSignatureData(sig, publicKey, messageHash)
     }
 
     private fun createSignatureData(sig: ECDSASignature, publicKey: BigInteger, messageHash: ByteArray): SignatureData {
@@ -230,7 +234,7 @@ object Sign {
         return BigInteger(1, Arrays.copyOfRange(encoded, 1, encoded.size)) // remove prefix
     }
 
-    fun publicPointFromPrivate(privateKey: BigInteger): ECPoint {
+    private fun publicPointFromPrivate(privateKey: BigInteger): ECPoint {
         var privKey = privateKey
         if (privKey.bitLength() > CURVE.n.bitLength()) {
             privKey = privKey.mod(CURVE.n)
