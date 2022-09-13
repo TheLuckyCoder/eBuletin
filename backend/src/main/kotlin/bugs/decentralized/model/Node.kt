@@ -41,7 +41,7 @@ data class Node(
         return "$address:$url"
     }
 
-    fun assignMiningTime(lastBlock : Long) {
+    fun assignMiningTime(lastBlock: Long) {
         mineTime = nextLong(address.hashCode().toLong() + lastBlock.hashCode())
     }
 }

@@ -9,6 +9,31 @@ import java.math.BigInteger
 import java.util.*
 
 class Poet {
+    private val validatorController: ValidatorController = TODO()
+    private val nodesService: NodesService = TODO()
+    private val nodes = validatorController.nodes()
+    private val blocks = validatorController.blocks()
+
+    private fun isVotingRoundLegit(nodes: List<Node>): Boolean {
+        var isValid = true
+        for (node in nodes) {
+            if (node.mineTime != kotlin.random.Random.nextLong(node.address.toLong() + blocks.last().hash.toLong()) ||
+                !nodesService.nodeIsAlive(node.url)
+            ) {
+                isValid = false
+                break
+            }
+        }
+
+        return isValid
+    }
+
+    private fun assignMineTimeForEachNode() {
+        for (node in nodes) {
+            if (nodesService.nodeIsAlive(node.url))
+                node.assignMiningTime(blocks.last().hash.toLong())
+        }
+    }
 
     fun isPoetValid(previousBlock: Block, nodeAddress: String, waitTime: Long): Boolean {
         val expectedTime = computeWaitTime(previousBlock, nodeAddress)
@@ -16,7 +41,7 @@ class Poet {
     }
 
     fun computeWaitTime(previousBlock: Block, nodeAddress: String): Long {
-        val hash = SHA.sha256(previousBlock.hash + nodeAddress)
+        val hash = SHA.sha256Hex(previousBlock.hash + nodeAddress)
         val seed = BigInteger(hash, 16)
         val rand = Random(seed.toLong())
         return rand.nextLong(MIN_TIME, MAX_TIME)

@@ -11,7 +11,7 @@ import java.net.URI
 import java.time.Duration
 
 @Service
-class NodesService @Autowired constructor (restTemplateBuilder: RestTemplateBuilder) {
+class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuilder) {
 
     private val restTemplate = restTemplateBuilder
         .setConnectTimeout(Duration.ofSeconds(30))

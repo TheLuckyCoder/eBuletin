@@ -13,6 +13,4 @@ class GovernmentController @Autowired constructor(
     private val nodesService: NodesService,
     private val blockRepository: BlockRepository,
     private val nodesRepository: NodesRepository,
-) {
-
-}
+)

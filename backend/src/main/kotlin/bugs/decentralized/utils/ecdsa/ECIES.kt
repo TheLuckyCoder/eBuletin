@@ -24,13 +24,7 @@ import org.bouncycastle.util.Arrays
 import org.bouncycastle.util.encoders.Hex
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
-import java.security.InvalidAlgorithmParameterException
-import java.security.KeyFactory
-import java.security.KeyPair
-import java.security.KeyPairGenerator
-import java.security.NoSuchAlgorithmException
-import java.security.NoSuchProviderException
-import java.security.SecureRandom
+import java.security.*
 import java.security.spec.ECPrivateKeySpec
 import java.security.spec.ECPublicKeySpec
 import java.security.spec.InvalidKeySpecException
@@ -140,12 +134,12 @@ object ECIES {
         //generate receiver PK
         val keyFactory = getKeyFactory()
         val curvedParams =
-            ECNamedCurveSpec(CURVE_NAME, ecSpec.curve, ecSpec.getG(), ecSpec.getN())
+            ECNamedCurveSpec(CURVE_NAME, ecSpec.curve, ecSpec.g, ecSpec.n)
         val publicKey: ECPublicKey = getEcPublicKey(curvedParams, publicKeyBytes, keyFactory)
 
         //Derive shared secret
-        val uncompressed: ByteArray = ephemeralPubKey.getQ().getEncoded(false)
-        val multiply: ByteArray = publicKey.getQ().multiply(ephemeralPrivKey.getD()).getEncoded(false)
+        val uncompressed: ByteArray = ephemeralPubKey.q.getEncoded(false)
+        val multiply: ByteArray = publicKey.q.multiply(ephemeralPrivKey.d).getEncoded(false)
         val aesKey = hkdf(uncompressed, multiply)
 
         // AES encryption
@@ -204,7 +198,7 @@ object ECIES {
         aesgcmBlockCipher.doFinal(encrypted, pos)
         val tag: ByteArray = Arrays.copyOfRange(encrypted, encrypted.size - nonce.size, encrypted.size)
         encrypted = Arrays.copyOfRange(encrypted, 0, encrypted.size - tag.size)
-        val ephemeralPkUncompressed: ByteArray = ephemeralPubKey.getQ().getEncoded(false)
+        val ephemeralPkUncompressed: ByteArray = ephemeralPubKey.q.getEncoded(false)
         return Arrays.concatenate(ephemeralPkUncompressed, nonce, tag, encrypted)
     }
 
