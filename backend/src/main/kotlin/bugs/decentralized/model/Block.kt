@@ -9,7 +9,7 @@ data class Block(
     val timestamp: Long,
     val transactions: List<Transaction>,
     val parentHash: String,
-    val nonce: ULong = 0UL, // proves that the node has waited the necessary amount of time to create a new block
+    val nodeAddress: String
 ) {
 
     private var _hash: String? = null
@@ -19,6 +19,6 @@ data class Block(
     }
 
     private fun computeHash() =
-        SHA.sha256(blockNumber.toString() + timestamp + transactions.joinToString("") { it.hash } + parentHash + nonce)
+        SHA.sha256(blockNumber.toString() + timestamp + transactions.joinToString("") { it.hash } + parentHash + nodeAddress)
 
 }

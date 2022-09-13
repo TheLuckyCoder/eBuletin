@@ -16,11 +16,10 @@ import org.springframework.web.bind.annotation.*
  */
 @RestController
 class ValidatorController @Autowired constructor(
-    private val nodesSerice: NodesService,
+    private val nodesService: NodesService,
     private val blockRepository: BlockRepository,
     private val nodesRepository: NodesRepository,
 ) {
-
     private val transactionsRepository = TransactionsRepository
 
     @GetMapping("/ping")
@@ -56,7 +55,7 @@ class ValidatorController @Autowired constructor(
 
         var isValid = true
         if (isValid) {
-//            nodesSerice.sendTransaction()
+//            nodesService.sendTransaction()
             return HttpStatus.OK
         }
 
@@ -72,7 +71,7 @@ class ValidatorController @Autowired constructor(
     fun nodes(@RequestBody nodes: List<Node>) {
         for (node in nodes) {
             if (nodesRepository.findByIdOrNull(node.address) == null) {
-                if (nodesSerice.doesNodeExist(node.url))
+                if (nodesService.doesNodeExist(node.url))
                     nodesRepository.save(node) // Only add active nodes to the database
             }
         }

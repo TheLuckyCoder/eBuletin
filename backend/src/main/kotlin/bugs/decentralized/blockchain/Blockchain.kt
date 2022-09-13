@@ -6,36 +6,14 @@ import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
+import bugs.decentralized.utils.SHA
+import bugs.decentralized.utils.epsilonEquals
+import java.math.BigInteger
+import java.util.*
 
 class Blockchain(
     private val blocks: MutableList<Block>
 ) {
-    private val blockRepository: BlockRepository = TODO()
-    private val nodesRepository: NodesRepository = TODO()
-    /***Why doesn't it work
-     * I don't get it
-     * please help*/
-    private val validatorController: ValidatorController = TODO()
-    var waitTime: ULong = 0UL
-
-    fun mineBlock(transactions: List<Transaction>): Block {
-        // Create a new block which will "point" to the last block.
-        val lastBlock = blocks.last()
-        waitTime = ULong.MAX_VALUE
-
-        assignMineTimeForEachNode(validatorController.nodes())
-
-        return Block(lastBlock.blockNumber + 1u, System.currentTimeMillis(), transactions, lastBlock.hash, waitTime)
-    }
-
-    private fun assignMineTimeForEachNode(nodes: List<Node>) {
-        for (node in nodes) {
-            node.assignMiningTime()
-
-            if (node.mineTime < waitTime)
-                waitTime = node.mineTime
-        }
-    }
 
     fun verify() {
         check(blocks.isNotEmpty()) { "Blockchain can't be empty" }
@@ -49,7 +27,8 @@ class Blockchain(
             val previous = blocks[i - 1]
             check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
 
-            check(isPoetValid(current.nonce, waitTime)) { "Invalid waiting time for block #$i!" }
+            /**cannot verify [expectedTime] against [waitingTime] (-> not stored anywhere)*/
+            //check(isPoetValid(previous, )) { "Invalid waiting time for block #$i!" }
         }
     }
 
@@ -63,10 +42,6 @@ class Blockchain(
     }
 
     companion object {
-        val GENESIS_BLOCK = Block(0UL, System.currentTimeMillis(), emptyList(), "", 0UL)
-
-        fun isPoetValid(poet: ULong, currentWaitingTime: ULong): Boolean {
-            return currentWaitingTime - 1UL <= poet && currentWaitingTime + 1UL >= poet
-        }
+        val GENESIS_BLOCK = Block(0UL, System.currentTimeMillis(), emptyList(), "", "")
     }
 }
