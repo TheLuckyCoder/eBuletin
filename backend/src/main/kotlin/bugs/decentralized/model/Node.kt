@@ -35,14 +35,11 @@ data class Node(
     @Id
     val address: String,
     val url: String,
-    var mineTime: Long = 0L
+    var waitTime: Long = 0L,
+    var leaderboard: MutableList<Node> = mutableListOf()
 ) {
 
     override fun toString(): String {
         return "$address:$url"
-    }
-
-    fun assignMiningTime(lastBlock: Long) {
-        mineTime = nextLong(address.hashCode().toLong() + lastBlock.hashCode())
     }
 }
