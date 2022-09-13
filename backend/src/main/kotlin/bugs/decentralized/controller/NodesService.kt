@@ -18,7 +18,7 @@ class NodesService @Autowired constructor (restTemplateBuilder: RestTemplateBuil
         .setReadTimeout(Duration.ofSeconds(30))
         .build()
 
-    fun doesNodeExist(nodeUrl: String): Boolean {
+    fun nodeIsAlive(nodeUrl: String): Boolean {
         val response = restTemplate.getForEntity<String>(URI.create("$nodeUrl/ping"))
 
         return response.statusCode == HttpStatus.OK

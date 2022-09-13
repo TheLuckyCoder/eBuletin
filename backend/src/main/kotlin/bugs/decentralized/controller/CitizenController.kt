@@ -4,16 +4,14 @@ import bugs.decentralized.model.IdCard
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.getInformationAtAddress
-import bugs.decentralized.utils.RSA
 import bugs.decentralized.utils.StringMap
-import bugs.decentralized.utils.decodeHex
+import bugs.decentralized.utils.ecdsa.ECIES
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import javax.crypto.spec.SecretKeySpec
 
 /**
  * Used to communicate with the citizens
@@ -53,9 +51,6 @@ class CitizenController @Autowired constructor(
             validity = LocalTime(1, 1, 1)
         )
 
-        val decodedAddress = publicKey.value.decodeHex()
-        val key = SecretKeySpec(decodedAddress, 0, decodedAddress.size, "RSA")
-
-        return RSA.encrypt(id, key)
+        return ECIES.encrypt(publicKey, id)
     }
 }

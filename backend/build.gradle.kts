@@ -27,6 +27,9 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
+//	implementation 'org.bouncycastle:bcprob-jdk18on:1.71.1'
+	implementation("org.bouncycastle:bcpkix-jdk18on:1.71.1")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

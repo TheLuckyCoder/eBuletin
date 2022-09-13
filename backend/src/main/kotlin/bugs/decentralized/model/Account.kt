@@ -1,7 +1,7 @@
 package bugs.decentralized.model
 
-import bugs.decentralized.utils.toHexString
 import kotlinx.serialization.Serializable
+import org.bouncycastle.util.encoders.Hex
 import java.security.MessageDigest
 
 @Serializable
@@ -13,7 +13,7 @@ value class PublicAccountKey(val value: String) {
             .getInstance("SHA-3")
             .digest(value.toByteArray())
 
-        val hex = "0x" + hash.takeLast(20).toByteArray().toHexString()
+        val hex = "0x" + Hex.toHexString(hash.takeLast(20).toByteArray())
         return AccountAddress(hex)
     }
 }
