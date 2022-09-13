@@ -1,7 +1,6 @@
 package bugs.decentralized.model
 
 import org.springframework.data.annotation.Id
-import kotlin.random.Random.Default.nextLong
 
 class SimpleNode(
     @Id
@@ -34,7 +33,7 @@ class SimpleNode(
 data class Node(
     @Id
     val address: String,
-    val url: String,
+    val url: String
     var mineTime: Long = 0L
 ) {
 

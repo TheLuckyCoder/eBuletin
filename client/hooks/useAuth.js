@@ -4,13 +4,14 @@ import { AuthContext } from "../authContext";
 import { getErrorMessage } from "../helpers/general";
 import CryptoJS from "crypto-js";
 
+
 export const useAuth = () => {
   const { isAuthenticated, setIsAuthenticated, setPrivateKey, privateKey } =
     React.useContext(AuthContext);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
-  const [encryptedPrivateKey, setEncryptedPrivateKey] = useState(" ");
+  const [encryptedPrivateKey, setEncryptedPrivateKey] = useState(false);
 
   const encryptPrivateKey = (privateKey, password) => {
     const obj = {
@@ -74,13 +75,30 @@ export const useAuth = () => {
     element.click();
   };
 
+  const onImport = async (data) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const encryptedPrivateKey = encryptPrivateKey(
+        data.privateKey,
+        data.password
+      );
+      setEncryptedPrivateKey(encryptedPrivateKey);
+      localStorage.setItem("encryptedPrivateKey", encryptedPrivateKey);
+      setIsAuthenticated(true);
+    } catch (e) {
+      console.error(e);
+      setError(e.message || "Something went wrong");
+    }
+    setIsLoading(false);
+  };
+
   const login = async (password) => {
     setIsLoading(true);
     setError(false);
     try {
       setIsAuthenticated(true);
       try {
-        console.log(decryptPrivateKey);
         const privateKey = decryptPrivateKey(encryptedPrivateKey, password);
         setPrivateKey(privateKey);
         router.push("/");
@@ -115,7 +133,9 @@ export const useAuth = () => {
   };
 
   const onMount = () => {
-    const encryptedPrivateKey = window.localStorage.getItem("privateKey");
+    const encryptedPrivateKey = window.localStorage.getItem(
+      "encryptedPrivateKey"
+    );
     setEncryptedPrivateKey(encryptedPrivateKey);
   };
 
@@ -130,5 +150,6 @@ export const useAuth = () => {
     error,
     register,
     generateKeyPair,
+    onImport,
   };
 };

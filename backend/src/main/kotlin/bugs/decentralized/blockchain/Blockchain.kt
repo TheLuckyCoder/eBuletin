@@ -7,11 +7,17 @@ import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
+import bugs.decentralized.utils.SHA
+import bugs.decentralized.utils.epsilonEquals
+import java.math.BigInteger
+import java.util.*
 import kotlin.random.Random.Default.nextLong
+
 
 class Blockchain(
     private val blocks: MutableList<Block>
 ) {
+
     private val nodesService: NodesService = TODO()
     private val validatorController: ValidatorController = TODO()
     private var waitTime: Long = 14400
@@ -61,7 +67,8 @@ class Blockchain(
             val previous = blocks[i - 1]
             check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
 
-            check(isPoetValid(current.nonce, waitTime)) { "Invalid waiting time for block #$i!" }
+            /**cannot verify [expectedTime] against [waitingTime] (-> not stored anywhere)*/
+            //check(isPoetValid(previous, )) { "Invalid waiting time for block #$i!" }
         }
     }
 

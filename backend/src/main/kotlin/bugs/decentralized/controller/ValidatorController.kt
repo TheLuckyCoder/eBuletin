@@ -24,7 +24,6 @@ class ValidatorController @Autowired constructor(
     private val blockRepository: BlockRepository,
     private val nodesRepository: NodesRepository,
 ) {
-
     private val transactionsRepository = TransactionsRepository
 
     @GetMapping("/ping")
