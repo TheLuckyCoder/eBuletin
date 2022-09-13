@@ -62,9 +62,11 @@ class ValidatorController @Autowired constructor(
 
     @PostMapping("/transactions")
     fun newTransaction(@RequestBody transaction: Transaction): HttpStatus {
+
         val hash = transaction.hash
 
-        if (transactionsRepository.transactionsPool.any { it.hash == hash }) {
+        if (transactionsRepository.transactionsPool.any { it.hash == hash })
+        {
             log.warn("A transaction that already is in the pool has been received")
             return HttpStatus.CONFLICT
         }
@@ -72,7 +74,9 @@ class ValidatorController @Autowired constructor(
         val transactionInBlocks = blockRepository.findAll().any { block ->
             block.transactions.any { it.hash == transaction.hash }
         }
-        if (transactionInBlocks) {
+
+        if (transactionInBlocks)
+        {
             log.error("A transaction that already is in the blockchain has been received")
             return HttpStatus.BAD_REQUEST
         }
@@ -88,6 +92,34 @@ class ValidatorController @Autowired constructor(
         if (transaction.sender == publicAccountKey.toAddress()) {
             log.error("Transaction's senders address and signature don't match")
             return HttpStatus.BAD_REQUEST
+        }
+
+        val isNotTheFirstTransactionWithThisPublicKey = blockRepository.findAll().any { block ->
+            block.transactions.any { it.sender == publicAccountKey.toAddress() }
+        }
+
+        if(!isNotTheFirstTransactionWithThisPublicKey)
+        {
+            if(transaction.data.information?.idCard?.size != 11)
+            {
+                log.error("It's the first transaction of this account, but the IdCard is not complete")
+                return HttpStatus.BAD_REQUEST
+            }
+        }
+
+        // TODO - SOME OF THE CHECKS MIGHT BE STUPID -> REMOVE/REPAIR THEM
+        transaction.data.information?.idCard?.forEach { (key, value) ->
+            if(key == "cnp") { /* TODO What check ? */ }
+            if(key == "lastName") { check(value.length >= 3) }
+            if(key == "firstName") { check(value.length >= 3) }
+            if(key == "address") { check(value.length >= 5) }
+            if(key == "birthLocation") { check(value.length >= 3) }
+            if(key == "birthDate") { /* TODO What check ? */ }
+            if(key == "sex") { check(value == "M" || value == "F") }
+            if(key == "issuedBy") { check(value.length >= 5) }
+            if(key == "series") { check(value.length == 2) }
+            if(key == "number") { check(value.length == 6) }
+            if(key == "validity") { /* TODO What check ? */ }
         }
 
         return HttpStatus.OK
