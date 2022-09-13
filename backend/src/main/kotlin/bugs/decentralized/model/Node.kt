@@ -35,16 +35,14 @@ data class Node(
     @Id
     val address: String,
     val url: String,
-    var isLeader: Boolean = false,
-    var mineTime: ULong = 0UL
+    var mineTime: Long = 0L
 ) {
 
     override fun toString(): String {
         return "$address:$url"
     }
 
-    fun assignMiningTime() {
-        if (!isLeader)
-            mineTime = nextLong().toULong() // TODO Should use a SecureRandom generator
+    fun assignMiningTime(lastBlock : Long) {
+        mineTime = nextLong(address.hashCode().toLong() + lastBlock.hashCode())
     }
 }

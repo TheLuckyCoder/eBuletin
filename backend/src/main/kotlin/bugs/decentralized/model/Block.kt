@@ -9,7 +9,7 @@ data class Block(
     val timestamp: Long,
     val transactions: List<Transaction>,
     val parentHash: String,
-    val nonce: ULong = 0UL, // proves that the node has waited the necessary amount of time to create a new block
+    val nonce: Long = 0L, // proves that the node has waited the necessary amount of time to create a new block
 ) {
 
     private var _hash: String? = null
