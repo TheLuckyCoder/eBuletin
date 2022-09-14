@@ -1,5 +1,7 @@
 package bugs.decentralized.controller
 
+import bugs.decentralized.BlockchainApplication
+import bugs.decentralized.model.SimpleNode
 import bugs.decentralized.model.Transaction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -18,10 +20,15 @@ class NodesService @Autowired constructor (restTemplateBuilder: RestTemplateBuil
         .setReadTimeout(Duration.ofSeconds(30))
         .build()
 
-    fun doesNodeExist(nodeUrl: String): Boolean {
+    fun nodeIsAlive(nodeUrl: String): Boolean {
         val response = restTemplate.getForEntity<String>(URI.create("$nodeUrl/ping"))
 
         return response.statusCode == HttpStatus.OK
+    }
+
+    fun sendAllNodes(nodeUrl: String, allNodes: List<SimpleNode>) {
+        val uri = URI.create("${nodeUrl}/nodes/${BlockchainApplication.NODE.address}")
+        restTemplate.postForEntity<List<SimpleNode>>(uri, allNodes)
     }
 
     fun sendTransaction(nodeUrl: String, transaction: Transaction): Boolean {

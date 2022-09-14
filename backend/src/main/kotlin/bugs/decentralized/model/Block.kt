@@ -19,6 +19,6 @@ data class Block(
     }
 
     private fun computeHash() =
-        SHA.sha256(blockNumber.toString() + timestamp + transactions.joinToString("") { it.hash } + parentHash + nonce)
+        SHA.sha256Hex(blockNumber.toString() + timestamp + transactions.joinToString("") { it.hash } + parentHash + nonce)
 
 }

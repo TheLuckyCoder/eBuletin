@@ -1,6 +1,6 @@
 package bugs.decentralized.repository
 
-import bugs.decentralized.model.Node
+import bugs.decentralized.model.SimpleNode
 import org.springframework.data.mongodb.repository.MongoRepository
 
-interface NodesRepository : MongoRepository<Node, String>
+interface NodesRepository : MongoRepository<SimpleNode, String>

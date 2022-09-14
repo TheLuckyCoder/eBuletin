@@ -2,14 +2,13 @@ package bugs.decentralized.model
 
 import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.StringMap
-import bugs.decentralized.utils.toHexString
+import bugs.decentralized.utils.ecdsa.Sign
+import bugs.decentralized.utils.ecdsa.SignatureData
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
-import java.security.PrivateKey
-import java.security.Signature
 
 /**
  * See https://ethereum.org/en/developers/docs/transactions/
@@ -28,14 +27,14 @@ data class Transaction(
      * See https://goethereumbook.org/signature-verify/
      * https://ethereum.stackexchange.com/questions/13778/get-public-key-of-any-ethereum-account/13892
      */
-    val signature: String,
+    val signature: SignatureData,
     /**
      * a sequentially incrementing counter which indicate the transaction number from the account
      * This must be unique per sender
      */
     val nonce: ULong,
     @Id
-    val hash: String = SHA.sha256(sender.value + receiver.value + data + nonce)
+    val hash: String = SHA.sha256Hex(sender.value + receiver.value + data + nonce)
 ) {
 
     companion object {
@@ -48,16 +47,12 @@ data class Transaction(
             sender: AccountAddress,
             receiver: AccountAddress,
             data: TransactionData,
-            privateKey: PrivateKey,
+            keyPair: Sign.ECKeyPair,
             nonce: ULong
         ): Transaction {
-            val signature = Signature.getInstance ("SHA256withECDSA").apply {
-                initSign(privateKey)
-                update(json.encodeToString(data).toByteArray())
+            val signature = Sign.sign(json.encodeToString(data), keyPair)
 
-            }.sign()
-
-            return Transaction(sender, receiver, data, signature.toHexString(), nonce)
+            return Transaction(sender, receiver, data, signature, nonce)
         }
     }
 }

@@ -1,19 +1,16 @@
 package bugs.decentralized.controller
 
-import bugs.decentralized.model.IdCard
+import bugs.decentralized.model.information.IdCard
+import bugs.decentralized.model.information.MedicalCard
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.getInformationAtAddress
-import bugs.decentralized.utils.RSA
 import bugs.decentralized.utils.StringMap
-import bugs.decentralized.utils.decodeHex
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
+import bugs.decentralized.utils.ecdsa.ECIES
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import javax.crypto.spec.SecretKeySpec
 
 /**
  * Used to communicate with the citizens
@@ -39,23 +36,24 @@ class CitizenController @Autowired constructor(
             }
         }
 
-        val id = IdCard(
-            cnp = idCardMap["cnp"]!!.toUInt(),
-            lastName = idCardMap["lastName"]!!,
-            firstName = idCardMap["firstName"]!!,
-            address = idCardMap["lastName"]!!,
-            birthLocation = idCardMap["birthLocation"]!!,
-            birthDate = LocalDate(1, 1, 1),
-            sex = idCardMap["sex"]!![0],
-            issuedBy = idCardMap["issuedBy"]!!,
-            series = idCardMap["series"]!!,
-            number = idCardMap["number"]!!.toUInt(),
-            validity = LocalTime(1, 1, 1)
-        )
+        val id = IdCard.fromMap(idCardMap)
 
-        val decodedAddress = publicKey.value.decodeHex()
-        val key = SecretKeySpec(decodedAddress, 0, decodedAddress.size, "RSA")
+        return ECIES.encrypt(publicKey, id)
+    }
 
-        return RSA.encrypt(id, key)
+    @GetMapping("/medical_card/{publicKey}")
+    fun getMedicalCard(@PathVariable publicKey: PublicAccountKey): String {
+        val address = publicKey.toAddress()
+
+        val map = StringMap()
+        blockRepository.getInformationAtAddress(address) {
+            it.medicalCard?.let { medicalCard ->
+                map.putAll(medicalCard)
+            }
+        }
+
+        val medicalCard = MedicalCard.fromMap(map)
+
+        return ECIES.encrypt(publicKey, medicalCard)
     }
 }
