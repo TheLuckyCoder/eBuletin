@@ -25,7 +25,7 @@ class CitizenController @Autowired constructor(
      *
      * Sends back a serialized [CardId] object, encrypted by the address
      */
-    @GetMapping("/buletin/{publicKey}")
+    @GetMapping("/citizen/buletin/{publicKey}")
     fun getIdCard(@PathVariable publicKey: PublicAccountKey): String {
         val address = publicKey.toAddress()
 
@@ -41,7 +41,7 @@ class CitizenController @Autowired constructor(
         return ECIES.encrypt(publicKey, id)
     }
 
-    @GetMapping("/medical_card/{publicKey}")
+    @GetMapping("/citizen/medical_card/{publicKey}")
     fun getMedicalCard(@PathVariable publicKey: PublicAccountKey): String {
         val address = publicKey.toAddress()
 

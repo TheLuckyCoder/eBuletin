@@ -44,9 +44,7 @@ class ValidatorController @Autowired constructor(
     }
 
     @GetMapping("/blocks")
-    fun blocks(): List<Block> {
-        return blockRepository.findAll()
-    }
+    fun blocks(): List<Block> = blockRepository.findAll()
 
     @GetMapping("/block/{blockNumber}")
     fun block(@PathVariable blockNumber: String): Block? {
@@ -60,7 +58,7 @@ class ValidatorController @Autowired constructor(
         return transactionsRepository.transactionsPool.toList()
     }
 
-    @PostMapping("/transactions")
+    @PostMapping("/transaction")
     fun newTransaction(@RequestBody transaction: Transaction): HttpStatus {
         val hash = transaction.hash
 
@@ -92,35 +90,6 @@ class ValidatorController @Autowired constructor(
             return HttpStatus.BAD_REQUEST
         }
 
-        val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
-            block.transactions.any { it.receiver == transaction.receiver }
-        }
-
-        if (!isNotTheFirstTransactionWithThisReceiver) {
-            // The first transaction should always contain all the id's information
-            try {
-                IdCard.fromMap(transaction.data.information!!.idCard!!)
-                // We don't need the value, just the exception if the value doesn't exist :)
-            } catch (e: Exception) {
-                log.error("It's the first transaction of this account, but the IdCard is not complete")
-                return HttpStatus.BAD_REQUEST
-            }
-        }
-
-        // TODO - SOME OF THE CHECKS MIGHT BE STUPID -> REMOVE/REPAIR THEM
-        transaction.data.information?.idCard?.forEach { (key, value) ->
-            if (key == "cnp") { check(value.length == 13) }
-            if (key == "lastName") check(value.length >= 3)
-            if (key == "firstName") check(value.length >= 3)
-            if (key == "address") check(value.length >= 5)
-            if (key == "birthLocation") check(value.length >= 3)
-            if (key == "sex") check(value == "M" || value == "F")
-            if (key == "issuedBy") check(value.length >= 5)
-            if (key == "series") check(value.length == 2)
-            if (key == "number") check(value.length == 6)
-            if (key == "validity") { Json.decodeFromString<LocalDate>(value) }
-        }
-
         return HttpStatus.OK
     }
 
@@ -129,7 +98,7 @@ class ValidatorController @Autowired constructor(
         return nodesRepository.findAll()
     }
 
-    @PutMapping("/nodes/{fromNodeAddress}")
+    @PostMapping("/nodes/{fromNodeAddress}")
     suspend fun nodes(@PathVariable fromNodeAddress: String, @RequestBody nodes: List<SimpleNode>) = coroutineScope {
         nodes.asSequence()
             .filterNot { it.address == BlockchainApplication.NODE.address }
