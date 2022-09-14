@@ -1,6 +1,7 @@
 package bugs.decentralized.controller
 
-import bugs.decentralized.controller.Poet.Companion.BLOCK_TIME
+import bugs.decentralized.controller.Poet.BLOCK_TIME
+import bugs.decentralized.controller.Poet.computeWaitTime
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
@@ -18,15 +19,14 @@ import kotlin.random.Random
  * 7. A new block is added to the blockchain
  * */
 
-class Poet {
-    private val validatorController: ValidatorController = TODO()
-    private val nodesService: NodesService = TODO()
-    private val nodes = validatorController.nodes()
-    private val blocks = validatorController.blocks()
+object Poet {
+    //TODO: find values:
+    private const val BLOCK_TIME = 60_000L //ms -> 1 min
+    private const val EPSILON = 20L //ms
+    private const val MIN_TIME = 1_000L //ms -> 1 s
+    private const val MAX_TIME = 60_000L //ms -> 1 min
 
-    /**
-     * Returns a list of Nodes sorted by [computeWaitTime]
-     */
+    /** Returns a list of Nodes sorted by [computeWaitTime] **/
     fun computeLeaderboard(activeNodes: List<Node>, lastBlock: Block): List<Node> {
         //compute waitTimes
         for (node in activeNodes) {
@@ -56,21 +56,21 @@ class Poet {
         )
     }
 
-    fun votingRound(activeNodes: List<Node>): Node {
+    fun assignLeaderboardToEachNode(activeNodes: List<Node>, lastBlock: Block) {
+        /** Generates the leaderboard and assigns it ot each node **/
+        val temList = computeLeaderboard(activeNodes, lastBlock).toMutableList()
+        for (node in activeNodes) {
+            node.leaderboard = temList
+        }
+    }
+
+    fun initiateVotingRound(activeNodes: List<Node>): Node {
         /** Returns the node that is eligible to add the next block to the blockchain **/
-        for (node in nodes) {
+        //the list of active nodes has
+        for (node in activeNodes) {
             if (node.compareLeaderboard(activeNodes))
                 return node
         }
         return activeNodes.last()
     }
-
-    companion object {
-        //TODO: find values:
-        private const val BLOCK_TIME = 60_000L //ms -> 1 min
-        private const val EPSILON = 20L //ms
-        private const val MIN_TIME = 1_000L //ms -> 1 s
-        private const val MAX_TIME = 60_000L //ms -> 1 min
-    }
-
 }
