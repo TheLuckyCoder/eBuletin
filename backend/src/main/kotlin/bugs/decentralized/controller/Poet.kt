@@ -27,7 +27,7 @@ object Poet {
     private const val MAX_TIME = 60_000L //ms -> 1 min
 
     /** Returns a list of Nodes sorted by [computeWaitTime] **/
-    fun computeLeaderboard(activeNodes: List<Node>, lastBlock: Block): List<Node> {
+    private fun computeLeaderboard(activeNodes: List<Node>, lastBlock: Block): List<Node> {
         //compute waitTimes
         for (node in activeNodes) {
             node.waitTime = computeWaitTime(lastBlock, node.address)

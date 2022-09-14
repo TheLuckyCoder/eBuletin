@@ -44,10 +44,11 @@ data class Node(
 
     fun compareLeaderboard(newLeaderboard: List<Node>): Boolean {
         for (i in leaderboard.indices) {
-            if (leaderboard[i].address != newLeaderboard[i].address)
+            if (leaderboard[i].address != newLeaderboard[i].address ||
+                leaderboard[i].url != newLeaderboard[i].url
+            )
                 return false
         }
-
         return true
     }
 }

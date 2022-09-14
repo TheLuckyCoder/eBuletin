@@ -1,6 +1,5 @@
 package bugs.decentralized.blockchain
 
-import bugs.decentralized.controller.Poet
 import bugs.decentralized.model.Block
 import java.util.*
 
@@ -8,7 +7,7 @@ import java.util.*
 class Blockchain(
     private val blocks: MutableList<Block>
 ) {
-    val poet = Poet()
+    //TODO implement POET
 
     fun verify() {
         check(blocks.isNotEmpty()) { "Blockchain can't be empty" }
