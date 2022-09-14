@@ -23,7 +23,7 @@ class Blockchain(
         val lastBlock = blocks.last()
         waitTime = ULong.MAX_VALUE
 
-        assignMineTimeForEachNode(validatorController.nodes())
+//        assignMineTimeForEachNode(validatorController.nodes())
 
         return Block(lastBlock.blockNumber + 1u, System.currentTimeMillis(), transactions, lastBlock.hash, waitTime)
     }

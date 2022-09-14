@@ -2,7 +2,7 @@ package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.model.Block
-import bugs.decentralized.model.IdCard
+import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.SimpleNode
 import bugs.decentralized.model.Transaction

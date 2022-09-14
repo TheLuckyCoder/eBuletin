@@ -1,10 +1,11 @@
-package bugs.decentralized.model
+package bugs.decentralized.model.information
 
 import bugs.decentralized.utils.StringMap
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlin.jvm.Throws
 
 @Serializable
 data class IdCard(
@@ -19,7 +20,9 @@ data class IdCard(
     val validity: LocalDate,
     val issuedBy: String,
 ) {
+
     companion object {
+        @Throws(NumberFormatException::class)
         fun fromMap(map: StringMap) = IdCard(
             cnp = map["cnp"]!!.toUInt(),
             lastName = map["lastName"]!!,
