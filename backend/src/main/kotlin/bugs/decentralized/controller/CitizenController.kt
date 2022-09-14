@@ -6,8 +6,6 @@ import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.getInformationAtAddress
 import bugs.decentralized.utils.StringMap
 import bugs.decentralized.utils.ecdsa.ECIES
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -37,19 +35,7 @@ class CitizenController @Autowired constructor(
             }
         }
 
-        val id = IdCard(
-            cnp = idCardMap["cnp"]!!.toUInt(),
-            lastName = idCardMap["lastName"]!!,
-            firstName = idCardMap["firstName"]!!,
-            address = idCardMap["lastName"]!!,
-            birthLocation = idCardMap["birthLocation"]!!,
-            birthDate = LocalDate(1, 1, 1),
-            sex = idCardMap["sex"]!![0],
-            issuedBy = idCardMap["issuedBy"]!!,
-            series = idCardMap["series"]!!,
-            number = idCardMap["number"]!!.toUInt(),
-            validity = LocalTime(1, 1, 1)
-        )
+        val id = IdCard.fromMap(idCardMap)
 
         return ECIES.encrypt(publicKey, id)
     }

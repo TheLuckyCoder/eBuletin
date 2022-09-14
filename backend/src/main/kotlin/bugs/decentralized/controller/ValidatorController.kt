@@ -2,7 +2,7 @@ package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.model.Block
-import bugs.decentralized.model.Node
+import bugs.decentralized.model.IdCard
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.SimpleNode
 import bugs.decentralized.model.Transaction
@@ -12,11 +12,11 @@ import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.Sign
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
@@ -62,26 +62,24 @@ class ValidatorController @Autowired constructor(
 
     @PostMapping("/transactions")
     fun newTransaction(@RequestBody transaction: Transaction): HttpStatus {
-
         val hash = transaction.hash
 
-        if (transactionsRepository.transactionsPool.any { it.hash == hash })
-        {
+        if (transactionsRepository.transactionsPool.any { it.hash == hash }) {
             log.warn("A transaction that already is in the pool has been received")
             return HttpStatus.CONFLICT
         }
 
-        val transactionInBlocks = blockRepository.findAll().any { block ->
-            block.transactions.any { it.hash == transaction.hash }
+        val blocks = blockRepository.findAll()
+        val transactionInBlocks = blocks.any { block ->
+            block.transactions.any { it.hash == hash }
         }
 
-        if (transactionInBlocks)
-        {
+        if (transactionInBlocks) {
             log.error("A transaction that already is in the blockchain has been received")
             return HttpStatus.BAD_REQUEST
         }
 
-        val publicAccountKey = try {
+        val receiverPublicAccountKey = try {
             val publicKey = Sign.signedMessageToKey(Json.encodeToString(transaction.data), transaction.signature)
             PublicAccountKey(publicKey.toString())
         } catch (e: SignatureException) {
@@ -89,19 +87,21 @@ class ValidatorController @Autowired constructor(
             return HttpStatus.BAD_REQUEST
         }
 
-        if (transaction.sender == publicAccountKey.toAddress()) {
+        if (transaction.sender != receiverPublicAccountKey.toAddress()) {
             log.error("Transaction's senders address and signature don't match")
             return HttpStatus.BAD_REQUEST
         }
 
-        val isNotTheFirstTransactionWithThisPublicKey = blockRepository.findAll().any { block ->
-            block.transactions.any { it.sender == publicAccountKey.toAddress() }
+        val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
+            block.transactions.any { it.receiver == transaction.receiver }
         }
 
-        if(!isNotTheFirstTransactionWithThisPublicKey)
-        {
-            if(transaction.data.information?.idCard?.size != 11)
-            {
+        if (!isNotTheFirstTransactionWithThisReceiver) {
+            // The first transaction should always contain all the id's information
+            try {
+                IdCard.fromMap(transaction.data.information!!.idCard!!)
+                // We don't need the value, just the exception if the value doesn't exist :)
+            } catch (e: Exception) {
                 log.error("It's the first transaction of this account, but the IdCard is not complete")
                 return HttpStatus.BAD_REQUEST
             }
@@ -109,17 +109,16 @@ class ValidatorController @Autowired constructor(
 
         // TODO - SOME OF THE CHECKS MIGHT BE STUPID -> REMOVE/REPAIR THEM
         transaction.data.information?.idCard?.forEach { (key, value) ->
-            if(key == "cnp") { /* TODO What check ? */ }
-            if(key == "lastName") { check(value.length >= 3) }
-            if(key == "firstName") { check(value.length >= 3) }
-            if(key == "address") { check(value.length >= 5) }
-            if(key == "birthLocation") { check(value.length >= 3) }
-            if(key == "birthDate") { /* TODO What check ? */ }
-            if(key == "sex") { check(value == "M" || value == "F") }
-            if(key == "issuedBy") { check(value.length >= 5) }
-            if(key == "series") { check(value.length == 2) }
-            if(key == "number") { check(value.length == 6) }
-            if(key == "validity") { /* TODO What check ? */ }
+            if (key == "cnp") { check(value.length == 13) }
+            if (key == "lastName") check(value.length >= 3)
+            if (key == "firstName") check(value.length >= 3)
+            if (key == "address") check(value.length >= 5)
+            if (key == "birthLocation") check(value.length >= 3)
+            if (key == "sex") check(value == "M" || value == "F")
+            if (key == "issuedBy") check(value.length >= 5)
+            if (key == "series") check(value.length == 2)
+            if (key == "number") check(value.length == 6)
+            if (key == "validity") { Json.decodeFromString<LocalDate>(value) }
         }
 
         return HttpStatus.OK
