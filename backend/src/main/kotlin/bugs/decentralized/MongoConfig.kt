@@ -10,16 +10,16 @@ import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
 @Configuration
 class MongoConfig : AbstractMongoClientConfiguration() {
     override fun getDatabaseName(): String {
-        return "blockchain"
+        return "buletin"
     }
 
     override fun mongoClient(): MongoClient {
-        val connectionString = ConnectionString("mongodb://localhost:27017/test")
+        val connectionString = ConnectionString("mongodb://localhost:27017/buletin")
         val mongoClientSettings = MongoClientSettings.builder()
             .applyConnectionString(connectionString)
             .build()
         return MongoClients.create(mongoClientSettings)
     }
 
-    public override fun getMappingBasePackages() = listOf("bugs.decentralized")
+    public override fun getMappingBasePackages() = listOf("bugs.decentralized.model")
 }

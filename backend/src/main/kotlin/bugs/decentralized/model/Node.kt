@@ -1,8 +1,10 @@
 package bugs.decentralized.model
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
 import kotlin.random.Random.Default.nextLong
 
+@Document
 class SimpleNode(
     @Id
     val address: String,
@@ -36,7 +38,7 @@ data class Node(
     val address: String,
     val url: String,
     var isLeader: Boolean = false,
-    var mineTime: ULong = 0UL
+    var mineTime: Long = 0L
 ) {
 
     override fun toString(): String {
@@ -45,6 +47,6 @@ data class Node(
 
     fun assignMiningTime() {
         if (!isLeader)
-            mineTime = nextLong().toULong() // TODO Should use a SecureRandom generator
+            mineTime = nextLong().toLong() // TODO Should use a SecureRandom generator
     }
 }

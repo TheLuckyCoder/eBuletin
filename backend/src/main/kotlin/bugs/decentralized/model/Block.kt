@@ -2,18 +2,23 @@ package bugs.decentralized.model
 
 import bugs.decentralized.utils.SHA
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.annotation.Transient
 
+@Document
 data class Block(
-    @Id
-    val blockNumber: ULong, // the length of the blockchain in blocks
+    @field:Id
+    val blockNumber: Long, // the length of the blockchain in blocks
     val timestamp: Long,
     val transactions: List<Transaction>,
     val parentHash: String,
-    val nonce: ULong = 0UL, // proves that the node has waited the necessary amount of time to create a new block
+    val nonce: Long, // proves that the node has waited the necessary amount of time to create a new block
 ) {
 
+    @field:Transient
     private var _hash: String? = null
-    val hash: String = _hash ?: computeHash().let {
+
+    fun getHash(): String = _hash ?: computeHash().let {
         _hash = it
         it
     }

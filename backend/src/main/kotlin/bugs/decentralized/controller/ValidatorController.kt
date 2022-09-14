@@ -44,7 +44,8 @@ class ValidatorController @Autowired constructor(
     }
 
     @GetMapping("/blocks")
-    fun blocks(): List<Block> = blockRepository.findAll()
+    fun blocks(): List<Block> =
+        blockRepository.findAll()
 
     @GetMapping("/block/{blockNumber}")
     fun block(@PathVariable blockNumber: String): Block? {

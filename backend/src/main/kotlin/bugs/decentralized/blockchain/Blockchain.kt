@@ -16,16 +16,16 @@ class Blockchain(
      * I don't get it
      * please help*/
     private val validatorController: ValidatorController = TODO()
-    var waitTime: ULong = 0UL
+    var waitTime: Long = 0L
 
     fun mineBlock(transactions: List<Transaction>): Block {
         // Create a new block which will "point" to the last block.
         val lastBlock = blocks.last()
-        waitTime = ULong.MAX_VALUE
+        waitTime = Long.MAX_VALUE
 
 //        assignMineTimeForEachNode(validatorController.nodes())
 
-        return Block(lastBlock.blockNumber + 1u, System.currentTimeMillis(), transactions, lastBlock.hash, waitTime)
+        return Block(lastBlock.blockNumber + 1, System.currentTimeMillis(), transactions, lastBlock.getHash(), waitTime)
     }
 
     private fun assignMineTimeForEachNode(nodes: List<Node>) {
@@ -44,10 +44,10 @@ class Blockchain(
         for (i in 1 until blocks.size) {
             val current = blocks[i]
 
-            check(current.blockNumber == i.toULong()) { "Invalid block number ${current.blockNumber} for block #${i}!" }
+            check(current.blockNumber == i.toLong()) { "Invalid block number ${current.blockNumber} for block #${i}!" }
 
             val previous = blocks[i - 1]
-            check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
+            check(current.parentHash == previous.getHash()) { "Invalid previous block hash for block #$i!" }
 
             check(isPoetValid(current.nonce, waitTime)) { "Invalid waiting time for block #$i!" }
         }
@@ -63,10 +63,10 @@ class Blockchain(
     }
 
     companion object {
-        val GENESIS_BLOCK = Block(0UL, System.currentTimeMillis(), emptyList(), "", 0UL)
+        val GENESIS_BLOCK = Block(0L, System.currentTimeMillis(), emptyList(), "", 0L)
 
-        fun isPoetValid(poet: ULong, currentWaitingTime: ULong): Boolean {
-            return currentWaitingTime - 1UL <= poet && currentWaitingTime + 1UL >= poet
+        fun isPoetValid(poet: Long, currentWaitingTime: Long): Boolean {
+            return currentWaitingTime - 1L <= poet && currentWaitingTime + 1L >= poet
         }
     }
 }

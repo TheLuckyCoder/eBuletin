@@ -17,7 +17,7 @@ class BlockchainApplication {
     companion object {
         val DOTENV = dotenv()
 
-        val GENESIS_BLOCK = Block(0UL, 0L, emptyList(), "GENESIS", 0UL)
+        val GENESIS_BLOCK = Block(0L, 0L, emptyList(), "GENESIS", 0L)
 
         val KEYS = ECIES.generateEcKeyPair() // Should be loaded from a file
 
@@ -32,6 +32,7 @@ fun main(args: Array<String>) {
     val applicationContext = runApplication<BlockchainApplication>(*args)
     val blockRepository = applicationContext.getBean<BlockRepository>()
 
+    blockRepository.findAll()
     if (blockRepository.count() == 0L) {
         blockRepository.insert(BlockchainApplication.GENESIS_BLOCK)
     }

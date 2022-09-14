@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Transient
 
 /**
  * See https://ethereum.org/en/developers/docs/transactions/
@@ -16,9 +17,9 @@ import org.springframework.data.annotation.Id
  */
 @Serializable
 data class Transaction(
-    val sender: AccountAddress,
+    private val _sender: String,
     // The receiver could very well be a new address (as we create an account when we first send data to it)
-    val receiver: AccountAddress,
+    private val _receiver: String,
     val data: TransactionData,
     /**
      * The signature is the [data] hashed with SHA-3 and signed with the senders private key
@@ -32,10 +33,16 @@ data class Transaction(
      * a sequentially incrementing counter which indicate the transaction number from the account
      * This must be unique per sender
      */
-    val nonce: ULong,
-    @Id
-    val hash: String = SHA.sha256Hex(sender.value + receiver.value + data + nonce)
+    val nonce: Long,
+    @field:Id
+    val hash: String
 ) {
+
+    val sender: AccountAddress
+        get() = AccountAddress(_sender)
+
+    val receiver: AccountAddress
+        get() = AccountAddress(_sender)
 
     companion object {
         @OptIn(ExperimentalSerializationApi::class)
@@ -52,7 +59,14 @@ data class Transaction(
         ): Transaction {
             val signature = Sign.sign(json.encodeToString(data), keyPair)
 
-            return Transaction(sender, receiver, data, signature, nonce)
+            return Transaction(
+                _sender = sender.value,
+                _receiver = receiver.value,
+                data = data,
+                signature = signature,
+                nonce = nonce.toLong(),
+                hash = SHA.sha256Hex(sender.value + receiver.value + data + nonce)
+            )
         }
     }
 }
