@@ -8,7 +8,6 @@ import java.util.*
 class Blockchain(
     private val blocks: MutableList<Block>
 ) {
-
     val poet = Poet()
 
     fun verify() {

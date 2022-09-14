@@ -1,7 +1,6 @@
 package bugs.decentralized.model
 
 import org.springframework.data.annotation.Id
-import kotlin.random.Random.Default.nextLong
 
 class SimpleNode(
     @Id
@@ -41,5 +40,14 @@ data class Node(
 
     override fun toString(): String {
         return "$address:$url"
+    }
+
+    fun compareLeaderboard(newLeaderboard: List<Node>): Boolean {
+        for (i in leaderboard.indices) {
+            if (leaderboard[i].address != newLeaderboard[i].address)
+                return false
+        }
+
+        return true
     }
 }

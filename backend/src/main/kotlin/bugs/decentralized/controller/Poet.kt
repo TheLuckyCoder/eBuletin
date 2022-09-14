@@ -6,7 +6,7 @@ import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.utils.SHA
 import java.math.BigInteger
-import java.util.*
+import kotlin.random.Random
 
 /**
  * 1. Every node computes its own [waitTime] and all other nodes' [waitTimes] using the [computeWaitTime] function
@@ -27,14 +27,14 @@ class Poet {
     /**
      * Returns a list of Nodes sorted by [computeWaitTime]
      */
-    fun computeLeaderboard(nodes: List<Node>, lastBlock: Block): List<Node> {
+    fun computeLeaderboard(activeNodes: List<Node>, lastBlock: Block): List<Node> {
         //compute waitTimes
-        for (node in nodes) {
+        for (node in activeNodes) {
             node.waitTime = computeWaitTime(lastBlock, node.address)
         }
         //sort the nodes by waitTime
-        nodes.sortedBy { it.waitTime }
-        return nodes
+        activeNodes.sortedBy { it.waitTime }
+        return activeNodes
     }
 
     private fun computeWaitTime(lastBlock: Block, nodeAddress: String): Long {
@@ -45,7 +45,7 @@ class Poet {
     }
 
     fun generateBlock(transactions: List<Transaction>, blocks: List<Block>, currentNode: Node): Block {
-        // Create a new block which will "point" to the last block.
+        /** Create a new block which will "point" to the last block. **/
         val lastBlock = blocks.last()
         return Block(
             lastBlock.blockNumber + 1u,
@@ -54,6 +54,15 @@ class Poet {
             lastBlock.hash,
             currentNode.address
         )
+    }
+
+    fun votingRound(activeNodes: List<Node>): Node {
+        /** Returns the node that is eligible to add the next block to the blockchain **/
+        for (node in nodes) {
+            if (node.compareLeaderboard(activeNodes))
+                return node
+        }
+        return activeNodes.last()
     }
 
     companion object {
