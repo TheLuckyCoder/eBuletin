@@ -22,9 +22,9 @@ import kotlin.random.Random
 object Poet {
     //TODO: find values:
     private const val BLOCK_TIME = 60_000L //ms -> 1 min
-    private const val EPSILON = 20L //ms
     private const val MIN_TIME = 1_000L //ms -> 1 s
     private const val MAX_TIME = 60_000L //ms -> 1 min
+    const val WAIT_TIME = 69_000L
 
     /** Returns a list of Nodes sorted by [computeWaitTime] **/
     private fun computeLeaderboard(activeNodes: List<Node>, lastBlock: Block): List<Node> {
@@ -37,7 +37,7 @@ object Poet {
         return activeNodes
     }
 
-    private fun computeWaitTime(lastBlock: Block, nodeAddress: String): Long {
+    fun computeWaitTime(lastBlock: Block, nodeAddress: String): Long {
         val hash = SHA.sha256Hex(lastBlock.hash + nodeAddress)
         val seed = BigInteger(hash, 16)
         val rand = Random(seed.toLong())
@@ -54,23 +54,5 @@ object Poet {
             lastBlock.hash,
             currentNode.address
         )
-    }
-
-    fun assignLeaderboardToEachNode(activeNodes: List<Node>, lastBlock: Block) {
-        /** Generates the leaderboard and assigns it ot each node **/
-        val temList = computeLeaderboard(activeNodes, lastBlock).toMutableList()
-        for (node in activeNodes) {
-            node.leaderboard = temList
-        }
-    }
-
-    fun initiateVotingRound(activeNodes: List<Node>): Node {
-        /** Returns the node that is eligible to add the next block to the blockchain **/
-        //the list of active nodes has
-        for (node in activeNodes) {
-            if (node.compareLeaderboard(activeNodes))
-                return node
-        }
-        return activeNodes.last()
     }
 }
