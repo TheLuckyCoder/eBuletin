@@ -4,11 +4,15 @@ import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.StringMap
 import bugs.decentralized.utils.ecdsa.Sign
 import bugs.decentralized.utils.ecdsa.SignatureData
+import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Transient
+import java.math.BigInteger
 
 /**
  * See https://ethereum.org/en/developers/docs/transactions/
@@ -16,12 +20,16 @@ import org.springframework.data.annotation.Id
  */
 @Serializable
 data class Transaction(
-    val sender: AccountAddress,
+    @field:Id
+    val hash: String,
+    @SerialName("sender")
+    private val _sender: String,
     // The receiver could very well be a new address (as we create an account when we first send data to it)
-    val receiver: AccountAddress,
+    @SerialName("receiver")
+    private val _receiver: String,
     val data: TransactionData,
     /**
-     * The signature is the [data] hashed with SHA-3 and signed with the senders private key
+     * The signature is the [data] hashed with SHA-256 and signed with the senders private key
      * If valid, we are be able to derive form the [signature] and [data] the [PublicAccountKey] of the [sender]
      *
      * See https://goethereumbook.org/signature-verify/
@@ -32,10 +40,14 @@ data class Transaction(
      * a sequentially incrementing counter which indicate the transaction number from the account
      * This must be unique per sender
      */
-    val nonce: ULong,
-    @Id
-    val hash: String = SHA.sha256Hex(sender.value + receiver.value + data + nonce)
+    val nonce: Long,
 ) {
+
+    val sender: AccountAddress
+        get() = AccountAddress(_sender)
+
+    val receiver: AccountAddress
+        get() = AccountAddress(_sender)
 
     companion object {
         @OptIn(ExperimentalSerializationApi::class)
@@ -47,12 +59,20 @@ data class Transaction(
             sender: AccountAddress,
             receiver: AccountAddress,
             data: TransactionData,
-            keyPair: Sign.ECKeyPair,
+            keyPair: SimpleKeyPair,
             nonce: ULong
         ): Transaction {
-            val signature = Sign.sign(json.encodeToString(data), keyPair)
+            val signKeys = Sign.ECKeyPair.create(BigInteger(keyPair.private, 16))
+            val signature = Sign.sign(json.encodeToString(data), signKeys)
 
-            return Transaction(sender, receiver, data, signature, nonce)
+            return Transaction(
+                _sender = sender.value,
+                _receiver = receiver.value,
+                data = data,
+                signature = signature,
+                nonce = nonce.toLong(),
+                hash = SHA.sha256Hex(sender.value + receiver.value + data + nonce)
+            )
         }
     }
 }

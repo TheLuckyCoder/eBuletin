@@ -16,10 +16,10 @@ class Blockchain(
         for (i in 1 until blocks.size) {
             val current = blocks[i]
 
-            check(current.blockNumber == i.toULong()) { "Invalid block number ${current.blockNumber} for block #${i}!" }
+            check(current.blockNumber == i.toLong()) { "Invalid block number ${current.blockNumber} for block #${i}!" }
 
             val previous = blocks[i - 1]
-            check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
+            check(current.parentHash == previous.getHash()) { "Invalid previous block hash for block #$i!" }
 
             /**cannot verify [expectedTime] against [waitingTime] (-> not stored anywhere)*/
             //check(isPoetValid(previous, )) { "Invalid waiting time for block #$i!" }

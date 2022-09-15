@@ -1,22 +1,23 @@
 package bugs.decentralized.controller
 
-import bugs.decentralized.model.IdCard
+import bugs.decentralized.model.information.IdCard
+import bugs.decentralized.model.information.MedicalCard
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.getInformationAtAddress
 import bugs.decentralized.utils.StringMap
 import bugs.decentralized.utils.ecdsa.ECIES
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
  * Used to communicate with the citizens
  */
 @RestController
+@RequestMapping("/citizen")
 class CitizenController @Autowired constructor(
     private val blockRepository: BlockRepository,
 ) {
@@ -24,33 +25,37 @@ class CitizenController @Autowired constructor(
     /**
      * @param publicKey must be a HEX string representing a public address of an account
      *
-     * Sends back a serialized [CardId] object, encrypted by the address
+     * Sends back a serialized [IdCard] object, encrypted by the address
      */
     @GetMapping("/buletin/{publicKey}")
     fun getIdCard(@PathVariable publicKey: PublicAccountKey): String {
         val address = publicKey.toAddress()
 
-        val idCardMap = StringMap()
+        val idCardMap = HashMap<String, String>()
         blockRepository.getInformationAtAddress(address) {
             it.idCard?.let { idCard ->
                 idCardMap.putAll(idCard)
             }
         }
 
-        val id = IdCard(
-            cnp = idCardMap["cnp"]!!.toUInt(),
-            lastName = idCardMap["lastName"]!!,
-            firstName = idCardMap["firstName"]!!,
-            address = idCardMap["lastName"]!!,
-            birthLocation = idCardMap["birthLocation"]!!,
-            birthDate = LocalDate(1, 1, 1),
-            sex = idCardMap["sex"]!![0],
-            issuedBy = idCardMap["issuedBy"]!!,
-            series = idCardMap["series"]!!,
-            number = idCardMap["number"]!!.toUInt(),
-            validity = LocalTime(1, 1, 1)
-        )
+        val id = IdCard.fromMap(idCardMap)
 
         return ECIES.encrypt(publicKey, id)
+    }
+
+    @GetMapping("/medical_card/{publicKey}")
+    fun getMedicalCard(@PathVariable publicKey: PublicAccountKey): String {
+        val address = publicKey.toAddress()
+
+        val map = HashMap<String, String>()
+        blockRepository.getInformationAtAddress(address) {
+            it.medicalCard?.let { medicalCard ->
+                map.putAll(medicalCard)
+            }
+        }
+
+        val medicalCard = MedicalCard.fromMap(map)
+
+        return ECIES.encrypt(publicKey, medicalCard)
     }
 }
