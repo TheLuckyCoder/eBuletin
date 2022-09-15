@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { isLoggedIn } from "./helpers/auth";
 
 export const AuthContext = createContext({
@@ -10,9 +10,15 @@ export const AuthContext = createContext({
 });
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(isLoggedIn());
   const [privateKey, setPrivateKey] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(privateKey !== null);
   const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (window.sessionStorage.getItem("privateKey") !== null) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   return (
     <AuthContext.Provider
