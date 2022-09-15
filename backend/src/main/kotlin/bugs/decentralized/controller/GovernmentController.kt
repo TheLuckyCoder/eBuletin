@@ -21,6 +21,7 @@ import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.security.SignatureException
 
@@ -28,6 +29,7 @@ import java.security.SignatureException
  * Used to communicate between a node and a local special government application
  */
 @RestController
+@RequestMapping("/government")
 class GovernmentController @Autowired constructor(
     private val nodesService: NodesService,
     private val blockRepository: BlockRepository,
@@ -37,7 +39,7 @@ class GovernmentController @Autowired constructor(
     private val log = LoggerExtensions.getLogger<ValidatorController>()
     private val transactionsRepository = TransactionsRepository
 
-    @PostMapping("/government/submit_transaction")
+    @PostMapping("/submit_transaction")
     suspend fun submitTransaction(transaction: Transaction): HttpStatus = coroutineScope {
         val hash = transaction.hash
 

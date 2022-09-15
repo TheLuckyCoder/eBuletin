@@ -10,12 +10,14 @@ import bugs.decentralized.utils.ecdsa.ECIES
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
  * Used to communicate with the citizens
  */
 @RestController
+@RequestMapping("/citizen")
 class CitizenController @Autowired constructor(
     private val blockRepository: BlockRepository,
 ) {
@@ -25,11 +27,11 @@ class CitizenController @Autowired constructor(
      *
      * Sends back a serialized [CardId] object, encrypted by the address
      */
-    @GetMapping("/citizen/buletin/{publicKey}")
+    @GetMapping("/buletin/{publicKey}")
     fun getIdCard(@PathVariable publicKey: PublicAccountKey): String {
         val address = publicKey.toAddress()
 
-        val idCardMap = StringMap()
+        val idCardMap = HashMap<String, String>()
         blockRepository.getInformationAtAddress(address) {
             it.idCard?.let { idCard ->
                 idCardMap.putAll(idCard)
@@ -41,11 +43,11 @@ class CitizenController @Autowired constructor(
         return ECIES.encrypt(publicKey, id)
     }
 
-    @GetMapping("/citizen/medical_card/{publicKey}")
+    @GetMapping("/medical_card/{publicKey}")
     fun getMedicalCard(@PathVariable publicKey: PublicAccountKey): String {
         val address = publicKey.toAddress()
 
-        val map = StringMap()
+        val map = HashMap<String, String>()
         blockRepository.getInformationAtAddress(address) {
             it.medicalCard?.let { medicalCard ->
                 map.putAll(medicalCard)
