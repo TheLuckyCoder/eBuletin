@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { AuthContext } from "../authContext";
 import { getErrorMessage } from "../helpers/general";
 import CryptoJS from "crypto-js";
+import { PrivateKey } from 'eciesjs'
 
 
 export const useAuth = () => {
@@ -38,29 +39,11 @@ export const useAuth = () => {
   };
 
   const generateKeyPair = async (password) => {
-    const { publicKey, privateKey } = await window.crypto.subtle.generateKey(
-      {
-        name: "RSA-OAEP",
-        modulusLength: 2048,
-        publicExponent: new Uint8Array([1, 0, 1]),
-        hash: { name: "SHA-256" },
-      },
-      true,
-      ["encrypt", "decrypt"]
-    );
+    const privateKey = new PrivateKey();
+    const publicKey = privateKey.publicKey;
 
-    const exportedPrivateKey = await window.crypto.subtle.exportKey(
-      "pkcs8",
-      privateKey
-    );
-
-    const exportedPublicKey = await window.crypto.subtle.exportKey(
-      "spki",
-      publicKey
-    );
-
-    const pubKeyStr = Buffer.from(exportedPublicKey).toString("base64");
-    const privateKeyStr = Buffer.from(exportedPrivateKey).toString("base64");
+    const pubKeyStr = publicKey.toHex();
+    const privateKeyStr = privateKey.toHex()
 
     setPrivateKey(privateKeyStr);
     return pubKeyStr;
@@ -84,7 +67,7 @@ export const useAuth = () => {
         data.password
       );
       setEncryptedPrivateKey(encryptedPrivateKey);
-      localStorage.setItem("encryptedPrivateKey", encryptedPrivateKey);
+      window.localStorage.setItem("encryptedPrivateKey", encryptedPrivateKey);
       setIsAuthenticated(true);
     } catch (e) {
       console.error(e);
@@ -97,28 +80,26 @@ export const useAuth = () => {
     setIsLoading(true);
     setError(false);
     try {
+      const privateKey = decryptPrivateKey(encryptedPrivateKey, password);
+      setPrivateKey(privateKey);
+      window.sessionStorage.setItem("privateKey", privateKey);
       setIsAuthenticated(true);
-      try {
-        const privateKey = decryptPrivateKey(encryptedPrivateKey, password);
-        setPrivateKey(privateKey);
-        router.push("/");
-      } catch (e) {
-        setError("Invalid Password");
-      }
+      router.push("/");
     } catch (error) {
-      setError(getErrorMessage(error));
+      setError("Invalid Password");
     }
     setIsLoading(false);
   };
 
   const register = async (data) => {
-    console.log("hello");
     setIsLoading(true);
     try {
-      window.localStorage.setItem(
-        "privateKey",
-        encryptPrivateKey(privateKey, data.password)
-      );
+      if (privateKey !== null) {
+        window.localStorage.setItem(
+          "encryptedPrivateKey",
+          encryptPrivateKey(privateKey, data.password)
+        );
+      }
       setIsAuthenticated(true);
       downloadPrivateKey(privateKey);
       router.push("/");
