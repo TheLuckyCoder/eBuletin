@@ -4,12 +4,14 @@ import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.StringMap
 import bugs.decentralized.utils.ecdsa.Sign
 import bugs.decentralized.utils.ecdsa.SignatureData
+import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
+import java.math.BigInteger
 
 /**
  * See https://ethereum.org/en/developers/docs/transactions/
@@ -54,10 +56,11 @@ data class Transaction(
             sender: AccountAddress,
             receiver: AccountAddress,
             data: TransactionData,
-            keyPair: Sign.ECKeyPair,
+            keyPair: SimpleKeyPair,
             nonce: ULong
         ): Transaction {
-            val signature = Sign.sign(json.encodeToString(data), keyPair)
+            val signKeys = Sign.ECKeyPair.create(BigInteger(keyPair.private, 16))
+            val signature = Sign.sign(json.encodeToString(data), signKeys)
 
             return Transaction(
                 _sender = sender.value,

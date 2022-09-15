@@ -1,5 +1,6 @@
 package bugs.decentralized.controller
 
+import bugs.decentralized.model.Block
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.information.IdCard
@@ -8,9 +9,11 @@ import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.Sign
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -83,16 +86,18 @@ class GovernmentController @Autowired constructor(
 
         // TODO - SOME OF THE CHECKS MIGHT BE STUPID -> REMOVE/REPAIR THEM
         transaction.data.information?.idCard?.forEach { (key, value) ->
-            if (key == "cnp") { check(value.length == 13) }
-            if (key == "lastName") check(value.length >= 3)
-            if (key == "firstName") check(value.length >= 3)
-            if (key == "address") check(value.length >= 5)
-            if (key == "birthLocation") check(value.length >= 3)
-            if (key == "sex") check(value == "M" || value == "F")
-            if (key == "issuedBy") check(value.length >= 5)
-            if (key == "series") check(value.length == 2)
-            if (key == "number") check(value.length == 6)
-            if (key == "validity") { Json.decodeFromString<LocalDate>(value) }
+            when (key) {
+                IdCard::cnp.name -> { check(value.length == 13) }
+                IdCard::lastName.name -> check(value.length >= 3)
+                IdCard::firstName.name -> check(value.length >= 3)
+                IdCard::address.name -> check(value.length >= 5)
+                IdCard::birthLocation.name -> check(value.length >= 3)
+                IdCard::sex.name -> check(value == "M" || value == "F")
+                IdCard::issuedBy.name -> check(value.length >= 5)
+                IdCard::series.name -> check(value.length == 2)
+                IdCard::seriesNumber.name -> check(value.length == 6)
+                IdCard::validity.name -> { Json.decodeFromString<LocalDate>(value) }
+            }
         }
 
         val nodes = nodesRepository.findAll()
@@ -101,6 +106,19 @@ class GovernmentController @Autowired constructor(
                 nodesService.sendTransaction(node.url, transaction)
             }
         }.joinAll()
+
+        val previousBlock = blocks.maxBy { it.blockNumber }
+        val block = Block(
+            previousBlock.blockNumber + 1,
+            System.currentTimeMillis(),
+            listOf(transaction),
+            previousBlock.getHash(),
+            0
+        )
+
+        withContext(Dispatchers.IO) {
+            blockRepository.save(block)
+        }
 
         HttpStatus.OK
     }

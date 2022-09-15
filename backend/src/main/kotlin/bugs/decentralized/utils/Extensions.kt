@@ -1,3 +1,3 @@
 package bugs.decentralized.utils
 
-typealias StringMap = HashMap<String, String>
+typealias StringMap = Map<String, String>
