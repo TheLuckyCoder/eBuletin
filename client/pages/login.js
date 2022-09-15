@@ -7,6 +7,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { enc } from "crypto-js";
 import { useRouter } from "next/router";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -28,14 +29,13 @@ const Login = () => {
   });
 
   const onSubmit = (data) => {
-    if (!encryptedPrivateKey) {
-      console.log("import ");
-      onImport(data);
-    } else {
+    console.log(encryptedPrivateKey, !!encryptedPrivateKey);
+    if (!!encryptedPrivateKey) {
       login(data.password);
+    } else {
+      onImport(data);
     }
   };
-  console.log(encryptedPrivateKey, !encryptedPrivateKey);
 
   return (
     <Box
