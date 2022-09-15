@@ -6,6 +6,7 @@ import bugs.decentralized.utils.ecdsa.Sign
 import bugs.decentralized.utils.ecdsa.SignatureData
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -19,12 +20,16 @@ import java.math.BigInteger
  */
 @Serializable
 data class Transaction(
+    @field:Id
+    val hash: String,
+    @SerialName("sender")
     private val _sender: String,
     // The receiver could very well be a new address (as we create an account when we first send data to it)
+    @SerialName("receiver")
     private val _receiver: String,
     val data: TransactionData,
     /**
-     * The signature is the [data] hashed with SHA-3 and signed with the senders private key
+     * The signature is the [data] hashed with SHA-256 and signed with the senders private key
      * If valid, we are be able to derive form the [signature] and [data] the [PublicAccountKey] of the [sender]
      *
      * See https://goethereumbook.org/signature-verify/
@@ -36,8 +41,6 @@ data class Transaction(
      * This must be unique per sender
      */
     val nonce: Long,
-    @field:Id
-    val hash: String
 ) {
 
     val sender: AccountAddress

@@ -11,7 +11,7 @@ import kotlin.jvm.Throws
 
 @Serializable
 data class IdCard(
-    val cnp: UInt,
+    val cnp: ULong,
     val lastName: String,
     val firstName: String,
     val birthLocation: String,
@@ -39,7 +39,7 @@ data class IdCard(
     companion object {
         @Throws(NumberFormatException::class, SerializationException::class)
         fun fromMap(map: StringMap) = IdCard(
-            cnp = map[IdCard::cnp.name]!!.toUInt(),
+            cnp = map[IdCard::cnp.name]!!.toULong(),
             lastName = map[IdCard::lastName.name]!!,
             firstName = map[IdCard::firstName.name]!!,
             address = map[IdCard::address.name]!!,

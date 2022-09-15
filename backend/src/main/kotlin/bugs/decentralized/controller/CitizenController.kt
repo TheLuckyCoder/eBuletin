@@ -25,7 +25,7 @@ class CitizenController @Autowired constructor(
     /**
      * @param publicKey must be a HEX string representing a public address of an account
      *
-     * Sends back a serialized [CardId] object, encrypted by the address
+     * Sends back a serialized [IdCard] object, encrypted by the address
      */
     @GetMapping("/buletin/{publicKey}")
     fun getIdCard(@PathVariable publicKey: PublicAccountKey): String {
