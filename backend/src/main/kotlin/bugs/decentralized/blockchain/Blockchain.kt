@@ -34,6 +34,7 @@ class Blockchain(
 
     private fun getTransactions(): List<Transaction> {
         //TODO
+        return emptyList()
     }
 
     fun miningSession(currentNode: Node) {

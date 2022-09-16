@@ -97,7 +97,7 @@ class ValidatorController @Autowired constructor(
     @GetMapping("/nodes")
     fun nodes(): List<SimpleNode> {
         return nodesRepository.findAll()
-    }>>>>>>> master
+    }
 
     @PostMapping("/nodes/{fromNodeAddress}")
     suspend fun nodes(@PathVariable fromNodeAddress: String, @RequestBody nodes: List<SimpleNode>) = coroutineScope {
