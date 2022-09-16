@@ -106,7 +106,7 @@ class GovernmentController @Autowired constructor(
         nodes.map {  node ->
             launch {
                 nodesService.sendTransaction(node.url, transaction)
-            }>>>>>>> master
+            }
         }.joinAll()
 
         val previousBlock = blocks.maxBy { it.blockNumber }
@@ -115,7 +115,7 @@ class GovernmentController @Autowired constructor(
             System.currentTimeMillis(),
             listOf(transaction),
             previousBlock.getHash(),
-            0
+            ""
         )
 
         withContext(Dispatchers.IO) {

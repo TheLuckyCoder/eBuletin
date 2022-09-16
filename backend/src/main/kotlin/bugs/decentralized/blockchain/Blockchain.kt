@@ -1,13 +1,50 @@
 package bugs.decentralized.blockchain
 
+import bugs.decentralized.controller.NodesService
+import bugs.decentralized.controller.Poet
+import bugs.decentralized.controller.ValidatorController
 import bugs.decentralized.model.Block
+import bugs.decentralized.model.Node
+import bugs.decentralized.model.Transaction
 import java.util.*
 
 
 class Blockchain(
-    private val blocks: MutableList<Block>
+    private val blocks: MutableList<Block>,
+    private val validatorController: ValidatorController,
+    private val nodesService: NodesService
 ) {
-    //TODO implement POET
+    private var nodeList: MutableList<Node> = TODO()
+
+    /** Why do we use [SimpleNode] ?
+     * I don't get it.
+     * It's stupid
+     **/
+
+    private fun getActiveNodes(): MutableList<Node> {
+        val activeNodes: MutableList<Node> = mutableListOf<Node>()
+
+        for (node in nodeList) {
+            if (nodesService.nodeIsAlive(node.url))
+                activeNodes.add(node)
+        }
+
+        return activeNodes
+    }
+
+    private fun getTransactions(): List<Transaction> {
+        //TODO
+    }
+
+    fun miningSession(currentNode: Node) {
+        Poet.computeWaitTime(blocks.last(), currentNode.address)
+        Thread.sleep(currentNode.waitTime)
+
+        Poet.computeLeaderboard(getActiveNodes(), blocks.last())
+
+        if (currentNode == currentNode.leaderboard[0])
+            Poet.generateBlock(getTransactions(), blocks, currentNode)
+    }
 
     fun verify() {
         check(blocks.isNotEmpty()) { "Blockchain can't be empty" }
@@ -36,6 +73,6 @@ class Blockchain(
     }
 
     companion object {
-        val GENESIS_BLOCK = Block(0UL, System.currentTimeMillis(), emptyList(), "", "")
+        val GENESIS_BLOCK = Block(0L, System.currentTimeMillis(), emptyList(), "", "")
     }
 }

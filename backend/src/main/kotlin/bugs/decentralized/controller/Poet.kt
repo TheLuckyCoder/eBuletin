@@ -27,7 +27,7 @@ object Poet {
     const val WAIT_TIME = 69_000L
 
     /** Returns a list of Nodes sorted by [computeWaitTime] **/
-    private fun computeLeaderboard(activeNodes: List<Node>, lastBlock: Block): List<Node> {
+    fun computeLeaderboard(activeNodes: List<Node>, lastBlock: Block): List<Node> {
         //compute waitTimes
         for (node in activeNodes) {
             node.waitTime = computeWaitTime(lastBlock, node.address)
@@ -38,7 +38,7 @@ object Poet {
     }
 
     fun computeWaitTime(lastBlock: Block, nodeAddress: String): Long {
-        val hash = SHA.sha256Hex(lastBlock.hash + nodeAddress)
+        val hash = SHA.sha256Hex(lastBlock.getHash() + nodeAddress)
         val seed = BigInteger(hash, 16)
         val rand = Random(seed.toLong())
         return rand.nextLong(MIN_TIME, MAX_TIME)
@@ -48,10 +48,10 @@ object Poet {
         /** Create a new block which will "point" to the last block. **/
         val lastBlock = blocks.last()
         return Block(
-            lastBlock.blockNumber + 1u,
+            lastBlock.blockNumber + 1,
             System.currentTimeMillis(),
             transactions,
-            lastBlock.hash,
+            lastBlock.getHash(),
             currentNode.address
         )
     }

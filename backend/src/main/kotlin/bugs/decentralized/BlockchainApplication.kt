@@ -20,7 +20,7 @@ class BlockchainApplication {
     companion object {
         val DOTENV = dotenv()
 
-        val GENESIS_BLOCK = Block(0L, 0L, emptyList(), "GENESIS", 0L)
+        val GENESIS_BLOCK = Block(0L, 0L, emptyList(), "GENESIS", "")
 
         val KEYS = generateKeys() // Should be loaded from a file
 

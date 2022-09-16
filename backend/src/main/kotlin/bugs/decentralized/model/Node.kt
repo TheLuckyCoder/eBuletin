@@ -2,7 +2,6 @@ package bugs.decentralized.model
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import kotlin.random.Random.Default.nextLong
 
 @Document
 class SimpleNode(
@@ -38,7 +37,8 @@ data class Node(
     val address: String,
     val url: String,
     var isLeader: Boolean = false,
-    var mineTime: Long = 0L
+    var waitTime: Long = 0L,
+    var leaderboard: MutableList<Node> = mutableListOf()
 ) {
 
     override fun toString(): String {
