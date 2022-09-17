@@ -9,11 +9,7 @@ import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.Sign
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -89,7 +85,10 @@ class GovernmentController @Autowired constructor(
         // TODO - SOME OF THE CHECKS MIGHT BE STUPID -> REMOVE/REPAIR THEM
         transaction.data.information?.idCard?.forEach { (key, value) ->
             when (key) {
-                IdCard::cnp.name -> { check(value.length == 13) }
+                IdCard::cnp.name -> {
+                    check(value.length == 13)
+                }
+
                 IdCard::lastName.name -> check(value.length >= 3)
                 IdCard::firstName.name -> check(value.length >= 3)
                 IdCard::address.name -> check(value.length >= 5)
@@ -98,12 +97,14 @@ class GovernmentController @Autowired constructor(
                 IdCard::issuedBy.name -> check(value.length >= 5)
                 IdCard::series.name -> check(value.length == 2)
                 IdCard::seriesNumber.name -> check(value.length == 6)
-                IdCard::validity.name -> { Json.decodeFromString<LocalDate>(value) }
+                IdCard::validity.name -> {
+                    Json.decodeFromString<LocalDate>(value)
+                }
             }
         }
 
         val nodes = nodesRepository.findAll()
-        nodes.map {  node ->
+        nodes.map { node ->
             launch {
                 nodesService.sendTransaction(node.url, transaction)
             }

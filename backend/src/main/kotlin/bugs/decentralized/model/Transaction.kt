@@ -11,7 +11,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.Transient
 import java.math.BigInteger
 
 /**

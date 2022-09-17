@@ -1,50 +1,37 @@
 package bugs.decentralized.controller
 
-import bugs.decentralized.controller.Poet.BLOCK_TIME
-import bugs.decentralized.controller.Poet.computeWaitTime
+import bugs.decentralized.controller.Poet.computeNonce
 import bugs.decentralized.model.Block
-import bugs.decentralized.model.Node
+import bugs.decentralized.model.SimpleNode
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.utils.SHA
 import java.math.BigInteger
 import kotlin.random.Random
 
-/**
- * 1. Every node computes its own [waitTime] and all other nodes' [waitTimes] using the [computeWaitTime] function
- * 2. The nodes wait for their computed [waitTime]
- * 3. Each node broadcasts its proposed [Block]
- * 4. After the [BLOCK_TIME] has passed the voting session starts
- * 5. Every node checks if the leader truly has the shortest [computeWaitTime]
- * 6. If a node is lying the next node is eligible to mine the block
- * 7. A new block is added to the blockchain
- * */
-
 object Poet {
-    //TODO: find values:
-    private const val BLOCK_TIME = 60_000L //ms -> 1 min
-    private const val MIN_TIME = 1_000L //ms -> 1 s
-    private const val MAX_TIME = 60_000L //ms -> 1 min
-    const val WAIT_TIME = 69_000L
+    const val BLOCK_TIME = 60_000L
+    const val WAIT_TIME = 50_000L
+    const val VOTING_TIME = BLOCK_TIME - WAIT_TIME
 
-    /** Returns a list of Nodes sorted by [computeWaitTime] **/
-    fun computeLeaderboard(activeNodes: List<Node>, lastBlock: Block): List<Node> {
+    /** Returns a list of Nodes sorted by [computeNonce] **/
+    fun computeLeaderboard(activeNodes: List<SimpleNode>, lastBlock: Block): List<SimpleNode> {
         //compute waitTimes
         for (node in activeNodes) {
-            node.waitTime = computeWaitTime(lastBlock, node.address)
+            node.nonce = computeNonce(lastBlock, node.address)
         }
         //sort the nodes by waitTime
-        activeNodes.sortedBy { it.waitTime }
+        activeNodes.sortedBy { it.nonce }
         return activeNodes
     }
 
-    fun computeWaitTime(lastBlock: Block, nodeAddress: String): Long {
+    fun computeNonce(lastBlock: Block, nodeAddress: String): Long {
         val hash = SHA.sha256Hex(lastBlock.getHash() + nodeAddress)
         val seed = BigInteger(hash, 16)
         val rand = Random(seed.toLong())
-        return rand.nextLong(MIN_TIME, MAX_TIME)
+        return rand.nextLong(Long.MIN_VALUE, Long.MAX_VALUE)
     }
 
-    fun generateBlock(transactions: List<Transaction>, blocks: List<Block>, currentNode: Node): Block {
+    fun generateBlock(transactions: List<Transaction>, blocks: List<Block>, currentNode: SimpleNode): Block {
         /** Create a new block which will "point" to the last block. **/
         val lastBlock = blocks.last()
         return Block(

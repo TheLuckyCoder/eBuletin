@@ -2,7 +2,6 @@ package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.model.Block
-import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.SimpleNode
 import bugs.decentralized.model.Transaction
@@ -15,8 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired

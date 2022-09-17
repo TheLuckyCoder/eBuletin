@@ -6,7 +6,6 @@ import bugs.decentralized.model.SimpleNode
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
-import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -18,11 +17,11 @@ import java.io.File
 @SpringBootApplication
 class BlockchainApplication {
     companion object {
-        val DOTENV = dotenv()
+        private val DOTENV = dotenv()
 
         val GENESIS_BLOCK = Block(0L, 0L, emptyList(), "GENESIS", "")
 
-        val KEYS = generateKeys() // Should be loaded from a file
+        private val KEYS = generateKeys() // Should be loaded from a file
 
         val NODE = SimpleNode(
             KEYS.public.value,
@@ -50,6 +49,7 @@ class BlockchainApplication {
 }
 
 fun main(args: Array<String>) {
+
     val applicationContext = runApplication<BlockchainApplication>(*args)
     val blockRepository = applicationContext.getBean<BlockRepository>()
 
@@ -58,3 +58,4 @@ fun main(args: Array<String>) {
         blockRepository.insert(BlockchainApplication.GENESIS_BLOCK)
     }
 }
+

@@ -1,5 +1,6 @@
 package bugs.decentralized.model
 
+import bugs.decentralized.blockchain.Blockchain
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
@@ -8,6 +9,8 @@ class SimpleNode(
     @Id
     val address: String,
     val url: String,
+    var nonce: Long = 0L,
+    var block: Block = Blockchain.GENESIS_BLOCK
 ) {
     override fun toString(): String {
         return "$address:$url"
@@ -21,6 +24,10 @@ class SimpleNode(
 
         if (address != other.address) return false
         if (url != other.url) return false
+        if (nonce != other.nonce) return false
+
+        if (block != other.block)
+            return false
 
         return true
     }
@@ -36,22 +43,10 @@ data class Node(
     @Id
     val address: String,
     val url: String,
-    var isLeader: Boolean = false,
     var waitTime: Long = 0L,
-    var leaderboard: MutableList<Node> = mutableListOf()
 ) {
 
     override fun toString(): String {
         return "$address:$url"
-    }
-
-    fun compareLeaderboard(newLeaderboard: List<Node>): Boolean {
-        for (i in leaderboard.indices) {
-            if (leaderboard[i].address != newLeaderboard[i].address ||
-                leaderboard[i].url != newLeaderboard[i].url
-            )
-                return false
-        }
-        return true
     }
 }

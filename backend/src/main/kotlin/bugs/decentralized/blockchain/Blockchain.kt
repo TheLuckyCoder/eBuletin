@@ -4,25 +4,19 @@ import bugs.decentralized.controller.NodesService
 import bugs.decentralized.controller.Poet
 import bugs.decentralized.controller.ValidatorController
 import bugs.decentralized.model.Block
-import bugs.decentralized.model.Node
-import bugs.decentralized.model.Transaction
+import bugs.decentralized.model.SimpleNode
+import kotlinx.coroutines.*
 import java.util.*
-
 
 class Blockchain(
     private val blocks: MutableList<Block>,
     private val validatorController: ValidatorController,
     private val nodesService: NodesService
 ) {
-    private var nodeList: MutableList<Node> = TODO()
+    private var nodeList: MutableList<SimpleNode> = validatorController.nodes().toMutableList()
 
-    /** Why do we use [SimpleNode] ?
-     * I don't get it.
-     * It's stupid
-     **/
-
-    private fun getActiveNodes(): MutableList<Node> {
-        val activeNodes: MutableList<Node> = mutableListOf<Node>()
+    private fun getActiveNodes(): MutableList<SimpleNode> {
+        val activeNodes: MutableList<SimpleNode> = mutableListOf()
 
         for (node in nodeList) {
             if (nodesService.nodeIsAlive(node.url))
@@ -32,22 +26,40 @@ class Blockchain(
         return activeNodes
     }
 
-    private fun getTransactions(): List<Transaction> {
-        //TODO
-        return emptyList()
+    @OptIn(DelicateCoroutinesApi::class)
+    fun miningSession(currentNode: SimpleNode) {
+        /**
+         * Pe parcursul [Poet.WAIT_TIME] -> asteapta + genereaza leaderboard
+         * Pe parcursul [Poet.VOTING_TIME] -> trimite + primeste blockuri propuse
+         * Dupa [Poet.VOTING_TIME] se adauga block-ul pe blockchain
+         **/
+        currentNode.nonce = Poet.computeNonce(blocks.last(), currentNode.address)
+        val leaderboard = Poet.computeLeaderboard(getActiveNodes(), blocks.last())
+
+            GlobalScope.launch {
+                delay(Poet.WAIT_TIME)
+                currentNode.block = Poet.generateBlock(validatorController.transactions(), blocks, currentNode)
+                //TODO: Broadcast the block
+
+
+                GlobalScope.launch {
+                    //TODO receive blocks
+                    //TODO update leaderboard
+                }
+
+                delay(Poet.VOTING_TIME)
+                for(node in leaderboard){
+                    if(node.block != GENESIS_BLOCK){
+                        //TODO add block to the blockchain
+                        blocks.add(node.block)
+                        return@launch
+                    }
+            }
+        }
     }
 
-    fun miningSession(currentNode: Node) {
-        Poet.computeWaitTime(blocks.last(), currentNode.address)
-        Thread.sleep(currentNode.waitTime)
-
-        Poet.computeLeaderboard(getActiveNodes(), blocks.last())
-
-        if (currentNode == currentNode.leaderboard[0])
-            Poet.generateBlock(getTransactions(), blocks, currentNode)
-    }
-
-    fun verify() {
+    //TODO make verify() useful
+    private fun verify() {
         check(blocks.isNotEmpty()) { "Blockchain can't be empty" }
         check(blocks[0] == GENESIS_BLOCK) { "Invalid first block!" }
 
@@ -62,15 +74,6 @@ class Blockchain(
             /**cannot verify [expectedTime] against [waitingTime] (-> not stored anywhere)*/
             //check(isPoetValid(previous, )) { "Invalid waiting time for block #$i!" }
         }
-    }
-
-    fun submitTransaction(senderAddress: String, receiverAddress: String, data: String) {
-        /*transactionPool.add(
-            Transaction(
-                sender = senderAddress,
-                receiver = receiverAddress,
-            )
-        )*/
     }
 
     companion object {

@@ -1,6 +1,5 @@
 package bugs.decentralized.ecsda
 
-import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.Sign
 import org.junit.jupiter.api.Test
