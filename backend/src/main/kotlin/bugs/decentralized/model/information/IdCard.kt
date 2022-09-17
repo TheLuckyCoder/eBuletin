@@ -42,13 +42,13 @@ data class IdCard(
             cnp = map[IdCard::cnp.name]!!.toULong(),
             lastName = map[IdCard::lastName.name]!!,
             firstName = map[IdCard::firstName.name]!!,
-            address = map[IdCard::address.name]!!,
             birthLocation = map[IdCard::birthLocation.name]!!,
+            address = map[IdCard::address.name]!!,
             sex = map[IdCard::sex.name]!![0],
             issuedBy = map[IdCard::issuedBy.name]!!,
             series = map[IdCard::series.name]!!,
             seriesNumber = map[IdCard::seriesNumber.name]!!.toUInt(),
-            validity = Json.decodeFromString(IdCard::validity.name)
+            validity = Json.decodeFromString(map[IdCard::validity.name]!!)
         )
     }
 }

@@ -1,12 +1,11 @@
 package bugs.decentralized
 
+import bugs.decentralized.controller.NodesService
 import bugs.decentralized.model.Block
-import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.SimpleNode
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
-import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -25,7 +24,7 @@ class BlockchainApplication {
         val KEYS = generateKeys() // Should be loaded from a file
 
         val NODE = SimpleNode(
-            KEYS.public.value,
+            KEYS.publicAccount.value,
             DOTENV.get("BLOCKCHAIN_SERVER_URL")
         )
 
@@ -34,16 +33,15 @@ class BlockchainApplication {
             val publicFile = File("public.key")
 
             return try {
-                val private = privateFile.readText()
-                val public = publicFile.readText()
+                val private = privateFile.readBytes()
+                val public = publicFile.readBytes()
 
-                SimpleKeyPair(private, PublicAccountKey(public))
+                SimpleKeyPair(private, public)
             } catch (e: Exception) {
-                val keys = ECIES.generateEcKeyPair()
-                val simpleKeys = SimpleKeyPair(keys.privateHex, PublicAccountKey(keys.getPublicHex(false)))
-                privateFile.writeText(simpleKeys.private)
-                publicFile.writeText(simpleKeys.public.value)
-                simpleKeys
+                ECIES.generateEcKeyPair().also { keys ->
+                    privateFile.writeBytes(keys.privateBinary)
+                    publicFile.writeBytes(keys.publicBinary)
+                }
             }
         }
     }
@@ -57,4 +55,7 @@ fun main(args: Array<String>) {
     if (blockRepository.count() == 0L) {
         blockRepository.insert(BlockchainApplication.GENESIS_BLOCK)
     }
+
+//    val nodesService: NodesService = applicationContext.getBean()
+//    nodesService.submitTransaction()
 }
