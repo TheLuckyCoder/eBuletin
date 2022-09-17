@@ -38,7 +38,6 @@ import javax.crypto.NoSuchPaddingException
 
 object ECIES {
 
-
     private class AESGCMBlockCipher : BufferedBlockCipher() {
         private val internalCipher = GCMBlockCipher(AESEngine())
 
@@ -60,23 +59,6 @@ object ECIES {
         }
     }
 
-    class ECKeyPair(val public: ECPublicKey, val private: ECPrivateKey) {
-
-        fun getPublicBinary(encoded: Boolean): ByteArray {
-            return public.q.getEncoded(encoded)
-        }
-
-        val privateBinary: ByteArray
-            get() = private.d.toByteArray()
-
-        fun getPublicHex(encoded: Boolean): String {
-            return Hex.toHexString(getPublicBinary(encoded))
-        }
-
-        val privateHex: String
-            get() = Hex.toHexString(privateBinary)
-    }
-
     private const val CURVE_NAME = "secp256k1"
     private const val UNCOMPRESSED_PUBLIC_KEY_SIZE = 65
     private const val AES_IV_LENGTH = 16
@@ -90,12 +72,15 @@ object ECIES {
      *
      * @return new EC key pair
      */
-    fun generateEcKeyPair(): ECKeyPair {
+    fun generateEcKeyPair(): SimpleKeyPair {
         val ecSpec: ECNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec(CURVE_NAME)
         val g: KeyPairGenerator = KeyPairGenerator.getInstance("EC", BouncyCastleProvider())
         g.initialize(ecSpec, SECURE_RANDOM)
         val keyPair: KeyPair = g.generateKeyPair()
-        return ECKeyPair(keyPair.public as ECPublicKey, keyPair.private as ECPrivateKey)
+        return SimpleKeyPair(
+            (keyPair.private as ECPrivateKey).d.toByteArray(),
+            (keyPair.public as ECPublicKey).q.getEncoded(false)
+        )
     }
 
     /**
@@ -140,12 +125,12 @@ object ECIES {
         //generate receiver PK
         val keyFactory = getKeyFactory()
         val curvedParams =
-            ECNamedCurveSpec(CURVE_NAME, ecSpec.curve, ecSpec.getG(), ecSpec.getN())
+            ECNamedCurveSpec(CURVE_NAME, ecSpec.curve, ecSpec.g, ecSpec.n)
         val publicKey: ECPublicKey = getEcPublicKey(curvedParams, publicKeyBytes, keyFactory)
 
         //Derive shared secret
-        val uncompressed: ByteArray = ephemeralPubKey.getQ().getEncoded(false)
-        val multiply: ByteArray = publicKey.getQ().multiply(ephemeralPrivKey.getD()).getEncoded(false)
+        val uncompressed: ByteArray = ephemeralPubKey.q.getEncoded(false)
+        val multiply: ByteArray = publicKey.q.multiply(ephemeralPrivKey.d).getEncoded(false)
         val aesKey = hkdf(uncompressed, multiply)
 
         // AES encryption
@@ -204,7 +189,7 @@ object ECIES {
         aesgcmBlockCipher.doFinal(encrypted, pos)
         val tag: ByteArray = Arrays.copyOfRange(encrypted, encrypted.size - nonce.size, encrypted.size)
         encrypted = Arrays.copyOfRange(encrypted, 0, encrypted.size - tag.size)
-        val ephemeralPkUncompressed: ByteArray = ephemeralPubKey.getQ().getEncoded(false)
+        val ephemeralPkUncompressed: ByteArray = ephemeralPubKey.q.getEncoded(false)
         return Arrays.concatenate(ephemeralPkUncompressed, nonce, tag, encrypted)
     }
 
@@ -260,5 +245,4 @@ object ECIES {
 
     inline fun <reified T> encrypt(publicKeyHex: PublicAccountKey, data: T): String =
         encrypt(publicKeyHex.value, Json.encodeToString(data))
-
 }

@@ -9,7 +9,7 @@ import org.bouncycastle.util.encoders.Hex
 value class PublicAccountKey(val value: String) {
 
     fun toAddress(): AccountAddress {
-        val hex = "0x" + Hex.toHexString(SHA.sha256Bytes(value).takeLast(20).toByteArray())
+        val hex = "0x" + Hex.toHexString(SHA.sha256Bytes(value.removePrefix("04")).takeLast(20).toByteArray())
         return AccountAddress(hex)
     }
 }
