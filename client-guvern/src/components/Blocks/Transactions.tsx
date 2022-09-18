@@ -33,9 +33,9 @@ const TransactionCard = ({ transaction }: { transaction: ITransaction }) => {
                 {
                   <Link
                     style={{ color: "#17C6B1" }}
-                    to={`${transaction.receiver}`}
+                    to={`${transaction.sender}`}
                   >
-                    {transaction.receiver}
+                    {transaction.sender}
                   </Link>
                 }
               </Typography>
