@@ -2,7 +2,8 @@ package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.model.PublicAccountKey
-import bugs.decentralized.model.SimpleNode
+import bugs.decentralized.model.Block
+import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.TransactionData
 import bugs.decentralized.model.information.IdCard
@@ -30,13 +31,17 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
         return response.statusCode == HttpStatus.OK
     }
 
-    fun sendAllNodes(nodeUrl: String, allNodes: List<SimpleNode>) {
+    fun sendAllNodes(nodeUrl: String, allNodes: List<Node>) {
         val uri = URI.create("${nodeUrl}/nodes/${BlockchainApplication.NODE.address}")
-        restTemplate.postForEntity<List<SimpleNode>>(uri, allNodes)
+        restTemplate.postForEntity<List<Node>>(uri, allNodes)
     }
 
     fun sendTransaction(nodeUrl: String, transaction: Transaction): Boolean {
         return restTemplate.postForEntity<Unit>("$nodeUrl/government/submit_transaction", transaction).statusCode == HttpStatus.OK
+    }
+
+    fun sendBlock(nodeUrl: String, block: Block): Boolean {
+        return restTemplate.postForEntity<Unit>("$nodeUrl/block", block).statusCode == HttpStatus.OK
     }
 
     /**
@@ -44,7 +49,7 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
      */
     fun submitTransaction() {
         val address = PublicAccountKey("042b5e6991a99b37d8cbe752e53a13190615487834d7365045ed2acf5b637ea94940a326647d51709e8d0e71079393d2cc5815d02f48ff184271e6fa3897d3758c").toAddress()
-        
+
         val transaction = Transaction.create(
             BlockchainApplication.KEYS.publicAccount.toAddress(),
             address,

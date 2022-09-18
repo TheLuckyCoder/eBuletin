@@ -6,13 +6,12 @@ import org.springframework.data.mongodb.core.mapping.Document
 
 @Serializable
 @Document
-class SimpleNode(
+class Node(
     @Id
-    val address: String,
-    val url: String,
-    var nonce: Long = 0L,
-    var block: Block = Blockchain.GENESIS_BLOCK
+    val address: String, // AccountAddress
+    val url: String
 ) {
+
     override fun toString(): String {
         return "$address:$url"
     }
@@ -21,14 +20,10 @@ class SimpleNode(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as SimpleNode
+        other as Node
 
         if (address != other.address) return false
         if (url != other.url) return false
-        if (nonce != other.nonce) return false
-
-        if (block != other.block)
-            return false
 
         return true
     }
@@ -37,18 +32,5 @@ class SimpleNode(
         var result = address.hashCode()
         result = 31 * result + url.hashCode()
         return result
-    }
-}
-
-@Serializable
-data class Node(
-    @Id
-    val address: String,
-    val url: String,
-    var waitTime: Long = 0L,
-) {
-
-    override fun toString(): String {
-        return "$address:$url"
     }
 }

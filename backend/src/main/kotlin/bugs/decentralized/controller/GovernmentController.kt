@@ -1,5 +1,6 @@
 package bugs.decentralized.controller
 
+import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
@@ -48,7 +49,7 @@ class GovernmentController @Autowired constructor(
     suspend fun submitTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> = coroutineScope {
         val hash = transaction.hash
 
-        if (transactionsRepository.transactionsPool.any { it.hash == hash }) {
+        if (transactionsRepository.getTransaction().any { it.hash == hash }) {
             log.warn("A transaction that already is in the pool has been received")
             return@coroutineScope ResponseEntity.badRequest()
                 .body("A transaction that already is in the pool has been received")
@@ -124,18 +125,18 @@ class GovernmentController @Autowired constructor(
             }
         }.joinAll()
 
-        val previousBlock = blocks.maxBy { it.blockNumber }
+        /*val previousBlock = blocks.maxBy { it.blockNumber }
         val block = Block(
             previousBlock.blockNumber + 1,
             System.currentTimeMillis(),
             listOf(transaction),
             previousBlock.hash,
-            0
+            BlockchainApplication.NODE.address
         )
 
         withContext(Dispatchers.IO) {
             blockRepository.save(block)
-        }
+        }*/
 
         ResponseEntity.accepted().build()
     }

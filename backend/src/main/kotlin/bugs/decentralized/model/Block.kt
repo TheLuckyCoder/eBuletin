@@ -14,19 +14,12 @@ data class Block(
     val timestamp: Long,
     val transactions: List<Transaction>,
     val parentHash: String,
-    val nodeAddress: String
+    val nodeAddress: String, // AccountAddress
 ) {
 
-    @kotlinx.serialization.Transient
     @Transient
-    private var _hash: String? = null
+    val hash: String = computeHash()
 
-    val hash: String
-        get() = _hash ?: computeHash().let {
-            _hash = it
-            it
-        }
-
-    private fun computeHash() =
-        SHA.sha256Hex(blockNumber.toString() + timestamp + transactions.joinToString("") { it.hash } + parentHash + nonce)
+    fun computeHash() =
+        SHA.sha256Hex(blockNumber.toString() + timestamp + transactions.joinToString("") { it.hash } + parentHash + nodeAddress)
 }

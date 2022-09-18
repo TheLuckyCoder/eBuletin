@@ -1,45 +1,34 @@
 package bugs.decentralized.controller
 
-import bugs.decentralized.controller.Poet.computeNonce
+import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.Block
-import bugs.decentralized.model.SimpleNode
+import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.utils.SHA
 import java.math.BigInteger
 import kotlin.random.Random
 
 object Poet {
-    const val BLOCK_TIME = 60_000L
-    const val WAIT_TIME = 50_000L
-    const val VOTING_TIME = BLOCK_TIME - WAIT_TIME
+    //TODO: find values:
+    private const val MIN_TIME = 30_000L //ms -> 30 s
+    private const val MAX_TIME = 120_000L //ms -> 2 min
 
-    /** Returns a list of Nodes sorted by [computeNonce] **/
-    fun computeLeaderboard(activeNodes: List<SimpleNode>, lastBlock: Block): List<SimpleNode> {
-        //compute waitTimes
-        for (node in activeNodes) {
-            node.nonce = computeNonce(lastBlock, node.address)
-        }
-        //sort the nodes by waitTime
-        activeNodes.sortedBy { it.nonce }
-        return activeNodes
-    }
-
-    fun computeNonce(lastBlock: Block, nodeAddress: String): Long {
-        val hash = SHA.sha256Hex(lastBlock.getHash() + nodeAddress)
+    fun computeWaitTime(lastBlock: Block, nodeAddress: String): Long {
+        val hash = SHA.sha256Hex(lastBlock.computeHash() + nodeAddress)
         val seed = BigInteger(hash, 16)
         val rand = Random(seed.toLong())
-        return rand.nextLong(Long.MIN_VALUE, Long.MAX_VALUE)
+        return rand.nextLong(MIN_TIME, MAX_TIME)
     }
 
-    fun generateBlock(transactions: List<Transaction>, blocks: List<Block>, currentNode: SimpleNode): Block {
+    fun generateBlock(transactions: List<Transaction>, blocks: List<Block>, currentNode: Node): Block {
         /** Create a new block which will "point" to the last block. **/
         val lastBlock = blocks.last()
         return Block(
             lastBlock.blockNumber + 1,
             System.currentTimeMillis(),
             transactions,
-            lastBlock.getHash(),
-            currentNode.address
+            lastBlock.computeHash(),
+            currentNode.address,
         )
     }
 }

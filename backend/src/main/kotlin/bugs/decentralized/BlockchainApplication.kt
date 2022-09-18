@@ -1,12 +1,14 @@
 package bugs.decentralized
 
-import bugs.decentralized.controller.NodesService
+import bugs.decentralized.blockchain.Blockchain
+import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.Block
-import bugs.decentralized.model.SimpleNode
+import bugs.decentralized.model.Node
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import io.github.cdimascio.dotenv.dotenv
+import kotlinx.coroutines.*
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -19,13 +21,13 @@ class BlockchainApplication {
     companion object {
         private val DOTENV = dotenv()
 
-        val GENESIS_BLOCK = Block(0L, 0L, emptyList(), "GENESIS", "")
+        val GENESIS_BLOCK = Block(0L, 0L, emptyList(), "GENESIS", "0x0")
 
-        private val KEYS = generateKeys() // Should be loaded from a file
+        val KEYS = generateKeys() // Should be loaded from a file
 
-        val NODE = SimpleNode(
-            KEYS.publicAccount.value,
-            DOTENV.get("BLOCKCHAIN_SERVER_URL")
+        val NODE = Node(
+            KEYS.publicAccount.toAddress().value,
+            DOTENV.get("BLOCKCHAIN_SERVER_URL", "http://127.0.0.1:11225/")
         )
 
         private fun generateKeys(): SimpleKeyPair {
@@ -47,17 +49,23 @@ class BlockchainApplication {
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 fun main(args: Array<String>) {
 
     val applicationContext = runApplication<BlockchainApplication>(*args)
     val blockRepository = applicationContext.getBean<BlockRepository>()
 
-    blockRepository.findAll()
     if (blockRepository.count() == 0L) {
         blockRepository.insert(BlockchainApplication.GENESIS_BLOCK)
+    }
+
+    val blockchain: Blockchain = applicationContext.getBean()
+
+    GlobalScope.launch(Dispatchers.IO) {
+        while (true)
+            blockchain.miningSession(BlockchainApplication.NODE)
     }
 
 //    val nodesService: NodesService = applicationContext.getBean()
 //    nodesService.submitTransaction()
 }
-
