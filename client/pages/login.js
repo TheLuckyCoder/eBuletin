@@ -36,7 +36,6 @@ const Login = () => {
       onImport(data);
     }
   };
-  console.log(encryptedPrivateKey, !encryptedPrivateKey);
 
   return (
     <Box
