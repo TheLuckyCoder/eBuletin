@@ -124,7 +124,7 @@ class GovernmentController @Autowired constructor(
             previousBlock.blockNumber + 1,
             System.currentTimeMillis(),
             listOf(transaction),
-            previousBlock.getHash(),
+            previousBlock.hash,
             0
         )
 

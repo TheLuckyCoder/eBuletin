@@ -25,7 +25,7 @@ class Blockchain(
 
 //        assignMineTimeForEachNode(validatorController.nodes())
 
-        return Block(lastBlock.blockNumber + 1, System.currentTimeMillis(), transactions, lastBlock.getHash(), waitTime)
+        return Block(lastBlock.blockNumber + 1, System.currentTimeMillis(), transactions, lastBlock.hash, waitTime)
     }
 
     private fun assignMineTimeForEachNode(nodes: List<Node>) {
@@ -47,7 +47,7 @@ class Blockchain(
             check(current.blockNumber == i.toLong()) { "Invalid block number ${current.blockNumber} for block #${i}!" }
 
             val previous = blocks[i - 1]
-            check(current.parentHash == previous.getHash()) { "Invalid previous block hash for block #$i!" }
+            check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
 
             check(isPoetValid(current.nonce, waitTime)) { "Invalid waiting time for block #$i!" }
         }

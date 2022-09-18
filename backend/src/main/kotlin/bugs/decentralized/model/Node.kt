@@ -1,9 +1,11 @@
 package bugs.decentralized.model
 
+import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import kotlin.random.Random.Default.nextLong
 
+@Serializable
 @Document
 class SimpleNode(
     @Id
@@ -33,6 +35,7 @@ class SimpleNode(
     }
 }
 
+@Serializable
 data class Node(
     @Id
     val address: String,

@@ -45,7 +45,7 @@ data class Transaction(
         get() = AccountAddress(_sender)
 
     val receiver: AccountAddress
-        get() = AccountAddress(_sender)
+        get() = AccountAddress(_receiver)
 
     companion object {
         @OptIn(ExperimentalSerializationApi::class)

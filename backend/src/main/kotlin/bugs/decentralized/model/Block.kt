@@ -1,10 +1,12 @@
 package bugs.decentralized.model
 
 import bugs.decentralized.utils.SHA
+import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.annotation.Transient
 
+@Serializable
 @Document
 data class Block(
     @field:Id
@@ -15,15 +17,16 @@ data class Block(
     val nonce: Long, // proves that the node has waited the necessary amount of time to create a new block
 ) {
 
-    @field:Transient
+    @kotlinx.serialization.Transient
+    @Transient
     private var _hash: String? = null
 
-    fun getHash(): String = _hash ?: computeHash().let {
-        _hash = it
-        it
-    }
+    val hash: String
+        get() = _hash ?: computeHash().let {
+            _hash = it
+            it
+        }
 
     private fun computeHash() =
         SHA.sha256Hex(blockNumber.toString() + timestamp + transactions.joinToString("") { it.hash } + parentHash + nonce)
-
 }
