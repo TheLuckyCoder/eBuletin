@@ -11,7 +11,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
-import java.math.BigInteger
 
 /**
  * See https://ethereum.org/en/developers/docs/transactions/
@@ -46,7 +45,7 @@ data class Transaction(
         get() = AccountAddress(_sender)
 
     val receiver: AccountAddress
-        get() = AccountAddress(_sender)
+        get() = AccountAddress(_receiver)
 
     companion object {
         @OptIn(ExperimentalSerializationApi::class)
@@ -61,7 +60,7 @@ data class Transaction(
             keyPair: SimpleKeyPair,
             nonce: ULong
         ): Transaction {
-            val signKeys = Sign.ECKeyPair.create(BigInteger(keyPair.private, 16))
+            val signKeys = Sign.ECKeyPair.from(keyPair)
             val signature = Sign.sign(json.encodeToString(data), signKeys)
 
             return Transaction(

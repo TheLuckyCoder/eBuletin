@@ -16,21 +16,17 @@ export const useBlocks = () => {
     try {
       const blocks = await getBlocksReq();
       handleSuccess(blocks, setBlocks);
-    }
-      catch (error) {
+    } catch (error) {
       handleError(getErrorMessage(error), setBlocks);
-      console.error(error);
+      // console.error(error);
     }
   };
-
-      
 
   React.useEffect(() => {
     initBlocks();
   }, []);
-  
-  return {
-    blocks
-  };
 
+  return {
+    blocks,
+  };
 };

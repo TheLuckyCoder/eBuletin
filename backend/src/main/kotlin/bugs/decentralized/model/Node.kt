@@ -1,9 +1,10 @@
 package bugs.decentralized.model
 
-import bugs.decentralized.blockchain.Blockchain
+import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
+@Serializable
 @Document
 class SimpleNode(
     @Id
@@ -39,6 +40,7 @@ class SimpleNode(
     }
 }
 
+@Serializable
 data class Node(
     @Id
     val address: String,

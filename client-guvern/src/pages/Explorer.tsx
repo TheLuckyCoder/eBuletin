@@ -1,6 +1,5 @@
 import { Link } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import React from "react";
 import { useBlocks } from "../hooks/useBlocks";
 
 const columns: GridColDef[] = [
@@ -17,14 +16,16 @@ const columns: GridColDef[] = [
 
 export const Explorer = () => {
   const { blocks } = useBlocks();
+  
   return (
     <>
       <DataGrid
         columns={columns}
         rows={blocks.data}
         loading={blocks.loading}
+        getRowId={(row) => row.blockNumber}
         autoHeight
-        error={blocks.error}
+        error={blocks.error ? true : undefined}
         pageSize={10}
         rowsPerPageOptions={[10]}
       />

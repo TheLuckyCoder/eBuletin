@@ -28,6 +28,9 @@ import java.util.*
  */
 object Sign {
 
+    /**
+     * This is only useful for signing
+     */
     class ECKeyPair(val privateKey: BigInteger, val publicKey: BigInteger) {
 
         /**
@@ -66,7 +69,7 @@ object Sign {
 
         companion object {
 
-            fun create(keyPair: KeyPair): ECKeyPair {
+            fun from(keyPair: KeyPair): ECKeyPair {
                 val privateKey = keyPair.private as BCECPrivateKey
                 val publicKey = keyPair.public as BCECPublicKey
                 val privateKeyValue = privateKey.d
@@ -79,22 +82,21 @@ object Sign {
                 return ECKeyPair(privateKeyValue, publicKeyValue)
             }
 
-            fun create(keyPair: ECIES.ECKeyPair): ECKeyPair {
-                val privateKeyValue = keyPair.private.d
-                val publicKeyBytes: ByteArray = keyPair.getPublicBinary(false)
+            fun from(keyPair: SimpleKeyPair): ECKeyPair {
+                val publicKeyBytes: ByteArray = keyPair.publicBinary
                 val publicKeyValue = BigInteger(1, publicKeyBytes.copyOfRange(1, publicKeyBytes.size))
-                return ECKeyPair(privateKeyValue, publicKeyValue)
+                return ECKeyPair(keyPair.privateInteger, publicKeyValue)
             }
 
-            fun create(privateKey: BigInteger): ECKeyPair {
+            fun from(privateKey: BigInteger): ECKeyPair {
                 return ECKeyPair(privateKey, publicKeyFromPrivate(privateKey))
             }
         }
     }
 
     val CURVE_PARAMS: X9ECParameters = CustomNamedCurves.getByName("secp256k1")
-    const val CHAIN_ID_INC = 35
-    const val LOWER_REAL_V = 27
+//    const val CHAIN_ID_INC = 35
+//    const val LOWER_REAL_V = 27
 
     // The v signature parameter starts at 37 because 1 is the first valid chainId so:
     // chainId >= 1 implies that 2 * chainId + CHAIN_ID_INC >= 37.

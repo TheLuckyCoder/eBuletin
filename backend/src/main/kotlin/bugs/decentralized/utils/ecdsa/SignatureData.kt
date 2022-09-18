@@ -1,6 +1,11 @@
+@file:UseSerializers(ByteArrayAsHexSerializer::class)
+
 package bugs.decentralized.utils.ecdsa
 
+import bugs.decentralized.utils.serializers.ByteArrayAsHexSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+
 
 @Serializable
 class SignatureData(val v: ByteArray, val r: ByteArray, val s: ByteArray) {

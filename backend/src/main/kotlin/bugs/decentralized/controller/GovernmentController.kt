@@ -9,16 +9,25 @@ import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.Sign
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.net.http.HttpResponse
 import java.security.SignatureException
 
 /**
@@ -36,12 +45,13 @@ class GovernmentController @Autowired constructor(
     private val transactionsRepository = TransactionsRepository
 
     @PostMapping("/submit_transaction")
-    suspend fun submitTransaction(transaction: Transaction): HttpStatus = coroutineScope {
+    suspend fun submitTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> = coroutineScope {
         val hash = transaction.hash
 
         if (transactionsRepository.transactionsPool.any { it.hash == hash }) {
             log.warn("A transaction that already is in the pool has been received")
-            return@coroutineScope HttpStatus.CONFLICT
+            return@coroutineScope ResponseEntity.badRequest()
+                .body("A transaction that already is in the pool has been received")
         }
 
         val blocks = blockRepository.findAll()
@@ -51,20 +61,23 @@ class GovernmentController @Autowired constructor(
 
         if (transactionInBlocks) {
             log.error("A transaction that already is in the blockchain has been received")
-            return@coroutineScope HttpStatus.BAD_REQUEST
+            return@coroutineScope ResponseEntity.badRequest()
+                .body("A transaction that already is in the blockchain has been received")
         }
 
         val receiverPublicAccountKey = try {
             val publicKey = Sign.signedMessageToKey(Json.encodeToString(transaction.data), transaction.signature)
-            PublicAccountKey(publicKey.toString())
+            PublicAccountKey(Hex.toHexString(publicKey.toByteArray()))
         } catch (e: SignatureException) {
             log.error("Transaction has an invalid signature")
-            return@coroutineScope HttpStatus.BAD_REQUEST
+            return@coroutineScope ResponseEntity.badRequest().body("Transaction has an invalid signature")
         }
 
-        if (transaction.sender != receiverPublicAccountKey.toAddress()) {
+        val toAddress = receiverPublicAccountKey.toAddress()
+        if (transaction.sender != toAddress) {
+            println(toAddress)
             log.error("Transaction's senders address and signature don't match")
-            return@coroutineScope HttpStatus.BAD_REQUEST
+            return@coroutineScope ResponseEntity.badRequest().body("Transaction's senders address and signature don't match")
         }
 
         val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
@@ -77,8 +90,9 @@ class GovernmentController @Autowired constructor(
                 IdCard.fromMap(transaction.data.information!!.idCard!!)
                 // We don't need the value, just the exception if the value doesn't exist :)
             } catch (e: Exception) {
-                log.error("It's the first transaction of this account, but the IdCard is not complete")
-                return@coroutineScope HttpStatus.BAD_REQUEST
+                log.error("It's the first transaction of this account, but the IdCard is not complete", e)
+                return@coroutineScope ResponseEntity.badRequest()
+                    .body("It's the first transaction of this account, but the IdCard is not complete")
             }
         }
 
@@ -104,8 +118,8 @@ class GovernmentController @Autowired constructor(
         }
 
         val nodes = nodesRepository.findAll()
-        nodes.map { node ->
-            launch {
+        nodes.map {  node ->
+            launch(Dispatchers.IO) {
                 nodesService.sendTransaction(node.url, transaction)
             }
         }.joinAll()
@@ -115,14 +129,14 @@ class GovernmentController @Autowired constructor(
             previousBlock.blockNumber + 1,
             System.currentTimeMillis(),
             listOf(transaction),
-            previousBlock.getHash(),
-            ""
+            previousBlock.hash,
+            0
         )
 
         withContext(Dispatchers.IO) {
             blockRepository.save(block)
         }
 
-        HttpStatus.OK
+        ResponseEntity.accepted().build()
     }
 }
