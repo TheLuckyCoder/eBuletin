@@ -1,5 +1,6 @@
 package bugs.decentralized.controller
 
+import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
@@ -48,7 +49,7 @@ class GovernmentController @Autowired constructor(
     suspend fun submitTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> = coroutineScope {
         val hash = transaction.hash
 
-        if (transactionsRepository.transactionsPool.any { it.hash == hash }) {
+        if (transactionsRepository.getTransaction().any { it.hash == hash }) {
             log.warn("A transaction that already is in the pool has been received")
             return@coroutineScope ResponseEntity.badRequest()
                 .body("A transaction that already is in the pool has been received")
@@ -99,7 +100,10 @@ class GovernmentController @Autowired constructor(
         // TODO - SOME OF THE CHECKS MIGHT BE STUPID -> REMOVE/REPAIR THEM
         transaction.data.information?.idCard?.forEach { (key, value) ->
             when (key) {
-                IdCard::cnp.name -> { check(value.length == 13) }
+                IdCard::cnp.name -> {
+                    check(value.length == 13)
+                }
+
                 IdCard::lastName.name -> check(value.length >= 3)
                 IdCard::firstName.name -> check(value.length >= 3)
                 IdCard::address.name -> check(value.length >= 5)
@@ -108,7 +112,9 @@ class GovernmentController @Autowired constructor(
                 IdCard::issuedBy.name -> check(value.length >= 5)
                 IdCard::series.name -> check(value.length == 2)
                 IdCard::seriesNumber.name -> check(value.length == 6)
-                IdCard::validity.name -> { Json.decodeFromString<LocalDate>(value) }
+                IdCard::validity.name -> {
+                    Json.decodeFromString<LocalDate>(value)
+                }
             }
         }
 
@@ -119,18 +125,18 @@ class GovernmentController @Autowired constructor(
             }
         }.joinAll()
 
-        val previousBlock = blocks.maxBy { it.blockNumber }
+        /*val previousBlock = blocks.maxBy { it.blockNumber }
         val block = Block(
             previousBlock.blockNumber + 1,
             System.currentTimeMillis(),
             listOf(transaction),
             previousBlock.hash,
-            0
+            BlockchainApplication.NODE.address
         )
 
         withContext(Dispatchers.IO) {
             blockRepository.save(block)
-        }
+        }*/
 
         ResponseEntity.accepted().build()
     }

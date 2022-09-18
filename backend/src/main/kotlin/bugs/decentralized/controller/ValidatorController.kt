@@ -1,11 +1,7 @@
 package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
-import bugs.decentralized.model.Block
-import bugs.decentralized.model.information.IdCard
-import bugs.decentralized.model.PublicAccountKey
-import bugs.decentralized.model.SimpleNode
-import bugs.decentralized.model.Transaction
+import bugs.decentralized.model.*
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
@@ -15,8 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
-import kotlinx.serialization.decodeFromString
+import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
@@ -54,16 +49,37 @@ class ValidatorController @Autowired constructor(
         return blockRepository.findByIdOrNull(blockNumberLong)
     }
 
+    @PostMapping("/block")
+    fun block(@RequestBody block: Block) {
+        val allBlocks = blockRepository.findAll()
+        val duration = System.currentTimeMillis() - allBlocks.last().timestamp
+
+        if (allBlocks.none { it.blockNumber == block.blockNumber || it.hash == block.hash }
+            && allBlocks.maxOf { it.blockNumber } == (block.blockNumber - 1)
+            && duration > Poet.computeWaitTime(allBlocks.last(), block.nodeAddress)
+        ) {
+
+            synchronized(transactionsRepository.transactionsPool) {
+                transactionsRepository.transactionsPool.removeAll(block.transactions)
+            }
+
+            log.info("Block has been received $block")
+            blockRepository.save(block)
+        } else {
+            log.error("Block already exists or has an invalid waiting time $block")
+        }
+    }
+
     @GetMapping("/transactions")
     fun transactions(): List<Transaction> {
-        return transactionsRepository.transactionsPool.toList()
+        return transactionsRepository.getTransaction().toList()
     }
 
     @PostMapping("/transaction")
     fun newTransaction(@RequestBody transaction: Transaction): HttpStatus {
         val hash = transaction.hash
 
-        if (transactionsRepository.transactionsPool.any { it.hash == hash }) {
+        if (transactionsRepository.getTransaction().any { it.hash == hash }) {
             log.warn("A transaction that already is in the pool has been received")
             return HttpStatus.CONFLICT
         }
@@ -95,12 +111,12 @@ class ValidatorController @Autowired constructor(
     }
 
     @GetMapping("/nodes")
-    fun nodes(): List<SimpleNode> {
+    fun nodes(): List<Node> {
         return nodesRepository.findAll()
     }
 
     @PostMapping("/nodes/{fromNodeAddress}")
-    suspend fun nodes(@PathVariable fromNodeAddress: String, @RequestBody nodes: List<SimpleNode>) = coroutineScope {
+    suspend fun nodes(@PathVariable fromNodeAddress: String, @RequestBody nodes: List<Node>) = coroutineScope {
         nodes.asSequence()
             .filterNot { it.address == BlockchainApplication.NODE.address }
             .map { node ->

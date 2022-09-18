@@ -3,15 +3,15 @@ package bugs.decentralized.model
 import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import kotlin.random.Random.Default.nextLong
 
 @Serializable
 @Document
-class SimpleNode(
+class Node(
     @Id
-    val address: String,
-    val url: String,
+    val address: String, // AccountAddress
+    val url: String
 ) {
+
     override fun toString(): String {
         return "$address:$url"
     }
@@ -20,7 +20,7 @@ class SimpleNode(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as SimpleNode
+        other as Node
 
         if (address != other.address) return false
         if (url != other.url) return false
@@ -32,24 +32,5 @@ class SimpleNode(
         var result = address.hashCode()
         result = 31 * result + url.hashCode()
         return result
-    }
-}
-
-@Serializable
-data class Node(
-    @Id
-    val address: String,
-    val url: String,
-    var isLeader: Boolean = false,
-    var mineTime: Long = 0L
-) {
-
-    override fun toString(): String {
-        return "$address:$url"
-    }
-
-    fun assignMiningTime() {
-        if (!isLeader)
-            mineTime = nextLong().toLong() // TODO Should use a SecureRandom generator
     }
 }

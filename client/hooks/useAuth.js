@@ -6,6 +6,7 @@ import CryptoJS from "crypto-js";
 import { PrivateKey } from 'eciesjs'
 
 
+
 export const useAuth = () => {
   const { isAuthenticated, setIsAuthenticated, setPrivateKey, privateKey } =
     React.useContext(AuthContext);

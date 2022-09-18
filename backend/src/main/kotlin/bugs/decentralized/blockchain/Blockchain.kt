@@ -1,72 +1,118 @@
 package bugs.decentralized.blockchain
 
+import bugs.decentralized.controller.NodesService
+import bugs.decentralized.controller.Poet
 import bugs.decentralized.controller.ValidatorController
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
-import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
-import bugs.decentralized.repository.NodesRepository
+import bugs.decentralized.repository.TransactionsRepository
+import kotlinx.coroutines.*
+import org.bson.Document
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.mongodb.core.mapping.event.AfterSaveCallback
+import org.springframework.stereotype.Component
+import java.lang.Exception
 
-class Blockchain(
-    private val blocks: MutableList<Block>
+@Component
+class BlockListener @Autowired constructor() : AfterSaveCallback<Block> {
+
+    var callback: (() -> Unit)? = null
+
+    override fun onAfterSave(entity: Block, document: Document, collection: String): Block {
+        callback?.invoke()
+
+        return entity
+    }
+}
+
+@Component
+class Blockchain @Autowired constructor(
+    private val blockRepository: BlockRepository,
+    private val validatorController: ValidatorController,
+    private val nodesService: NodesService,
+    blockListener: BlockListener,
 ) {
-    private val blockRepository: BlockRepository = TODO()
-    private val nodesRepository: NodesRepository = TODO()
-    /***Why doesn't it work
-     * I don't get it
-     * please help*/
-    private val validatorController: ValidatorController = TODO()
-    var waitTime: Long = 0L
 
-    fun mineBlock(transactions: List<Transaction>): Block {
-        // Create a new block which will "point" to the last block.
-        val lastBlock = blocks.last()
-        waitTime = Long.MAX_VALUE
+    private val transactionRepository = TransactionsRepository
 
-//        assignMineTimeForEachNode(validatorController.nodes())
-
-        return Block(lastBlock.blockNumber + 1, System.currentTimeMillis(), transactions, lastBlock.hash, waitTime)
-    }
-
-    private fun assignMineTimeForEachNode(nodes: List<Node>) {
-        for (node in nodes) {
-            node.assignMiningTime()
-
-            if (node.mineTime < waitTime)
-                waitTime = node.mineTime
+    init {
+        blockListener.callback = {
+            miningSessionJob?.cancel()
         }
     }
 
-    fun verify() {
-        check(blocks.isNotEmpty()) { "Blockchain can't be empty" }
-        check(blocks[0] == GENESIS_BLOCK) { "Invalid first block!" }
+    private var nodeList: MutableList<Node> = validatorController.nodes().toMutableList()
+    private var miningSessionJob: Job? = null
 
-        for (i in 1 until blocks.size) {
-            val current = blocks[i]
+    /**
+     * Generate [Poet.computeWaitTime]
+     * Wait the generated time and propose a block
+     * If another valid block is proposed the waiting is cancelled
+     * save
+     * Repeat
+     **/
+    suspend fun miningSession(currentNode: Node) {
+        while (transactionRepository.getTransaction().isEmpty()) {
+            delay(10)
+        }
 
-            check(current.blockNumber == i.toLong()) { "Invalid block number ${current.blockNumber} for block #${i}!" }
+        @Suppress("BlockingMethodInNonBlockingContext")
+        miningSessionJob = CoroutineScope(Dispatchers.IO).launch {
+            val blocks = blockRepository.findAll().sortedBy { it.blockNumber }
+            //compute waitTime and wait:
+            val waitTime = Poet.computeWaitTime(blocks.last(), currentNode.address)
+            Thread.sleep(waitTime / 2)
+            ensureActive()
+            Thread.sleep(waitTime / 2)
+            ensureActive()
 
-            val previous = blocks[i - 1]
-            check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
+            //generate the new block to be proposed
+            val transactions = synchronized(transactionRepository.transactionsPool) {
+                val result = transactionRepository.transactionsPool.toList()
+                transactionRepository.transactionsPool.clear()
+                result
+            }
+            require(transactions.isNotEmpty()) { "No transactions to mine" }
+            val newBlock = Poet.generateBlock(transactions, blocks, currentNode)
 
-            check(isPoetValid(current.nonce, waitTime)) { "Invalid waiting time for block #$i!" }
+            ensureActive()
+            launch(Dispatchers.IO) {
+                blockRepository.save(newBlock)
+            }
+
+            nodeList.map {
+                launch(Dispatchers.IO) {
+                    try {
+                        nodesService.sendBlock(it.url, newBlock)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }.joinAll()
+        }
+
+        try {
+            miningSessionJob?.join()
+        } finally {
         }
     }
 
-    fun submitTransaction(senderAddress: String, receiverAddress: String, data: String) {
-        /*transactionPool.add(
-            Transaction(
-                sender = senderAddress,
-                receiver = receiverAddress,
-            )
-        )*/
-    }
-
-    companion object {
-        val GENESIS_BLOCK = Block(0L, System.currentTimeMillis(), emptyList(), "", 0L)
-
-        fun isPoetValid(poet: Long, currentWaitingTime: Long): Boolean {
-            return currentWaitingTime - 1L <= poet && currentWaitingTime + 1L >= poet
-        }
-    }
+    //TODO make verify() useful
+//    fun verify() {
+//        check(blocks.isNotEmpty()) { "Blockchain can't be empty" }
+//        check(blocks[0] == GENESIS_BLOCK) { "Invalid first block!" }
+//
+//        for (i in 1 until blocks.size) {
+//            val current = blocks[i]
+//
+//            check(current.blockNumber == i.toLong()) { "Invalid block number ${current.blockNumber} for block #${i}!" }
+//
+//            val previous = blocks[i - 1]
+//            check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
+//
+//            /**cannot verify [expectedTime] against [waitingTime] (-> not stored anywhere)*/
+//            //check(isPoetValid(previous, )) { "Invalid waiting time for block #$i!" }
+//        }
+//    }
 }

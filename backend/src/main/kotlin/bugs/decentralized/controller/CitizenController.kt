@@ -1,11 +1,10 @@
 package bugs.decentralized.controller
 
+import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.model.information.MedicalCard
-import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.getInformationAtAddress
-import bugs.decentralized.utils.StringMap
 import bugs.decentralized.utils.ecdsa.ECIES
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
