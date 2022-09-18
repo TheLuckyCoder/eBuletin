@@ -59,6 +59,9 @@ const TransactionCard = ({ transaction }: { transaction: ITransaction }) => {
             <ReactJson
               name={false}
               theme="ocean"
+              style={{
+                backgroundColor: "none",
+              }}
               iconStyle="square"
               enableClipboard={false}
               displayDataTypes={false}
