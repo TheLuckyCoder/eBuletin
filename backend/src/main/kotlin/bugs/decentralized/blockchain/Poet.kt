@@ -1,4 +1,4 @@
-package bugs.decentralized.controller
+package bugs.decentralized.blockchain
 
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
@@ -17,7 +17,7 @@ object Poet {
         //convert only the first 15 hex digits to avoid overflow
         val seed = hash.substring(0, 15).toLong(16)
         val rand = Random(seed)
-        return rand.nextLong(MIN_TIME, MAX_TIME)
+        return rand.nextLong(MIN_TIME.inWholeMilliseconds, MAX_TIME.inWholeMilliseconds)
     }
 
     fun generateBlock(transactions: List<Transaction>, lastBlock: Block, currentNode: Node): Block {

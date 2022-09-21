@@ -1,6 +1,7 @@
 package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
+import bugs.decentralized.blockchain.Poet
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.model.PublicAccountKey
@@ -22,6 +23,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -41,7 +43,14 @@ class NodesController @Autowired constructor(
     private val transactionsRepository = TransactionsRepository
 
     @GetMapping("/ping")
-    fun ping(): String {
+    fun ping(): String = "OK"
+
+    @PostMapping("/ping")
+    fun ping(@RequestBody node: Node): String {
+        if (nodesRepository.findByIdOrNull(node.address) == null) {
+            log.info("Added new Node($node)")
+            nodesRepository.save(node)
+        }
         return "OK"
     }
 
@@ -138,7 +147,7 @@ class NodesController @Autowired constructor(
                     if (nodesRepository.findByIdOrNull(node.address) == null) {
                         if (node.address == fromNodeAddress) {
                             nodesRepository.save(node)
-                        } else if (nodesService.nodeIsAlive(node.url)) { // Only add active nodes to the database
+                        } else if (nodesService.pingNode(node.url)) { // Only add active nodes to the database
                             nodesRepository.save(node)
                             nodesService.sendAllNodes(node.url, nodesRepository.findAll())
                         }

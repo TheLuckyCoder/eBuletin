@@ -2,7 +2,6 @@ package bugs.decentralized
 
 import bugs.decentralized.blockchain.Blockchain
 import bugs.decentralized.controller.NodesService
-import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.repository.BlockRepository
@@ -10,7 +9,11 @@ import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import io.github.cdimascio.dotenv.dotenv
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
