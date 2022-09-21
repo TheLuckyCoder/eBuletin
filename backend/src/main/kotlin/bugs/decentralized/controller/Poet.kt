@@ -4,7 +4,6 @@ import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.utils.SHA
-import java.math.BigInteger
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -14,10 +13,11 @@ object Poet {
     private val MAX_TIME = 1.minutes
 
     fun computeWaitTime(lastBlock: Block, nodeAddress: String): Long {
-        val hash = SHA.sha256Hex(lastBlock.computeHash() + nodeAddress)
-        val seed = BigInteger(hash, 16)
-        val rand = Random(seed.toLong())
-        return rand.nextLong(MIN_TIME.inWholeMilliseconds, MAX_TIME.inWholeMilliseconds)
+        val hash = SHA.sha256Hex(lastBlock.hash + nodeAddress)
+        //convert only the first 15 hex digits to avoid overflow
+        val seed = hash.substring(0, 15).toLong(16)
+        val rand = Random(seed)
+        return rand.nextLong(MIN_TIME, MAX_TIME)
     }
 
     fun generateBlock(transactions: List<Transaction>, lastBlock: Block, currentNode: Node): Block {
