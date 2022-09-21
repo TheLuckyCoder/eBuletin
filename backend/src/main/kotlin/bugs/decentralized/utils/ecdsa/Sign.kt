@@ -101,7 +101,7 @@ object Sign {
     // The v signature parameter starts at 37 because 1 is the first valid chainId so:
     // chainId >= 1 implies that 2 * chainId + CHAIN_ID_INC >= 37.
     // https://eips.ethereum.org/EIPS/eip-155
-    const val REPLAY_PROTECTED_V_MIN = 37
+//    const val REPLAY_PROTECTED_V_MIN = 37
     val CURVE = ECDomainParameters(
         CURVE_PARAMS.curve,
         CURVE_PARAMS.g,

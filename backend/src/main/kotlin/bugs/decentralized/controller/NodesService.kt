@@ -1,9 +1,9 @@
 package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
-import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
+import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.TransactionData
 import bugs.decentralized.model.information.IdCard
@@ -13,7 +13,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.client.getForEntity
-import org.springframework.web.client.postForEntity
 import java.net.URI
 import java.time.Duration
 
@@ -32,16 +31,42 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
     }
 
     fun sendAllNodes(nodeUrl: String, allNodes: List<Node>) {
-        val uri = URI.create("${nodeUrl}/nodes/${BlockchainApplication.NODE.address}")
-        restTemplate.postForEntity<List<Node>>(uri, allNodes)
+        try {
+            val uri = URI.create("${nodeUrl}/nodes/${BlockchainApplication.NODE.address}")
+            restTemplate.put(uri, allNodes)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun submitTransaction(nodeUrl: String, transaction: Transaction): Boolean {
+        return try {
+            restTemplate.put("$nodeUrl/government/submit_transaction", transaction)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 
     fun sendTransaction(nodeUrl: String, transaction: Transaction): Boolean {
-        return restTemplate.postForEntity<Unit>("$nodeUrl/government/submit_transaction", transaction).statusCode == HttpStatus.OK
+        return try {
+            restTemplate.put("$nodeUrl/transaction", transaction)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 
     fun sendBlock(nodeUrl: String, block: Block): Boolean {
-        return restTemplate.postForEntity<Unit>("$nodeUrl/block", block).statusCode == HttpStatus.OK
+        return try {
+            restTemplate.put("$nodeUrl/block", block)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 
     /**
@@ -73,6 +98,6 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
             nonce = 0UL,
         )
 
-        sendTransaction("https://server.aaconsl.com/blockchain"/*"http://127.0.0.1:11225"*/, transaction)
+        submitTransaction("https://server.aaconsl.com/blockchain", transaction)
     }
 }

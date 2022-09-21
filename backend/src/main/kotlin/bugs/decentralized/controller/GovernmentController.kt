@@ -1,7 +1,6 @@
 package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
-import bugs.decentralized.model.Block
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.information.IdCard
@@ -12,23 +11,18 @@ import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.Sign
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.net.http.HttpResponse
 import java.security.SignatureException
 
 /**
@@ -42,11 +36,12 @@ class GovernmentController @Autowired constructor(
     private val nodesRepository: NodesRepository,
 ) {
 
-    private val log = LoggerExtensions.getLogger<ValidatorController>()
+    private val log = LoggerExtensions.getLogger<NodesController>()
     private val transactionsRepository = TransactionsRepository
 
-    @PostMapping("/submit_transaction")
+    @PutMapping("/submit_transaction")
     suspend fun submitTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> = coroutineScope {
+        log.info("Received new transaction")
         val hash = transaction.hash
 
         if (transactionsRepository.getTransaction().any { it.hash == hash }) {
@@ -76,9 +71,9 @@ class GovernmentController @Autowired constructor(
 
         val toAddress = receiverPublicAccountKey.toAddress()
         if (transaction.sender != toAddress) {
-            println(toAddress)
             log.error("Transaction's senders address and signature don't match")
-            return@coroutineScope ResponseEntity.badRequest().body("Transaction's senders address and signature don't match")
+            return@coroutineScope ResponseEntity.badRequest()
+                .body("Transaction's senders address and signature don't match")
         }
 
         val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
@@ -97,7 +92,6 @@ class GovernmentController @Autowired constructor(
             }
         }
 
-        // TODO - SOME OF THE CHECKS MIGHT BE STUPID -> REMOVE/REPAIR THEM
         transaction.data.information?.idCard?.forEach { (key, value) ->
             when (key) {
                 IdCard::cnp.name -> {
@@ -112,31 +106,22 @@ class GovernmentController @Autowired constructor(
                 IdCard::issuedBy.name -> check(value.length >= 5)
                 IdCard::series.name -> check(value.length == 2)
                 IdCard::seriesNumber.name -> check(value.length == 6)
-                IdCard::validity.name -> {
-                    Json.decodeFromString<LocalDate>(value)
-                }
+                IdCard::validity.name -> Json.decodeFromString<LocalDate>(value)
             }
         }
 
         val nodes = nodesRepository.findAll()
-        nodes.map {  node ->
-            launch(Dispatchers.IO) {
-                nodesService.sendTransaction(node.url, transaction)
+        nodes.asSequence()
+            .filter { it != BlockchainApplication.NODE }
+            .forEach { node ->
+                launch(Dispatchers.IO) {
+                    log.info("Sending transaction to $node")
+                    nodesService.sendTransaction(node.url, transaction)
+                }
             }
-        }.joinAll()
 
-        /*val previousBlock = blocks.maxBy { it.blockNumber }
-        val block = Block(
-            previousBlock.blockNumber + 1,
-            System.currentTimeMillis(),
-            listOf(transaction),
-            previousBlock.hash,
-            BlockchainApplication.NODE.address
-        )
-
-        withContext(Dispatchers.IO) {
-            blockRepository.save(block)
-        }*/
+        transactionsRepository.transactionsPool.add(transaction)
+        log.info("Received new transaction")
 
         ResponseEntity.accepted().build()
     }

@@ -1,18 +1,21 @@
 package bugs.decentralized.blockchain
 
+import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.controller.NodesService
 import bugs.decentralized.controller.Poet
-import bugs.decentralized.controller.ValidatorController
+import bugs.decentralized.controller.NodesController
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.repository.BlockRepository
+import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
+import bugs.decentralized.utils.LoggerExtensions
 import kotlinx.coroutines.*
 import org.bson.Document
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.mapping.event.AfterSaveCallback
 import org.springframework.stereotype.Component
-import java.lang.Exception
+import kotlin.time.Duration.Companion.milliseconds
 
 @Component
 class BlockListener @Autowired constructor() : AfterSaveCallback<Block> {
@@ -29,11 +32,12 @@ class BlockListener @Autowired constructor() : AfterSaveCallback<Block> {
 @Component
 class Blockchain @Autowired constructor(
     private val blockRepository: BlockRepository,
-    private val validatorController: ValidatorController,
+    private val nodesRepository: NodesRepository,
     private val nodesService: NodesService,
     blockListener: BlockListener,
 ) {
 
+    private val log = LoggerExtensions.getLogger<Blockchain>()
     private val transactionRepository = TransactionsRepository
 
     init {
@@ -42,7 +46,6 @@ class Blockchain @Autowired constructor(
         }
     }
 
-    private var nodeList: MutableList<Node> = validatorController.nodes().toMutableList()
     private var miningSessionJob: Job? = null
 
     /**
@@ -52,16 +55,17 @@ class Blockchain @Autowired constructor(
      * save
      * Repeat
      **/
-    suspend fun miningSession(currentNode: Node) {
+    suspend fun miningSession(currentNode: Node) = coroutineScope {
         while (transactionRepository.getTransaction().isEmpty()) {
             delay(10)
         }
 
         @Suppress("BlockingMethodInNonBlockingContext")
-        miningSessionJob = CoroutineScope(Dispatchers.IO).launch {
-            val blocks = blockRepository.findAll().sortedBy { it.blockNumber }
+        miningSessionJob = launch {
+            val lastBlock = blockRepository.findAll().maxBy { it.blockNumber }
             //compute waitTime and wait:
-            val waitTime = Poet.computeWaitTime(blocks.last(), currentNode.address)
+            val waitTime = Poet.computeWaitTime(lastBlock, currentNode.address)
+            log.info("Waiting for ${waitTime.milliseconds} to mine a block")
             Thread.sleep(waitTime / 2)
             ensureActive()
             Thread.sleep(waitTime / 2)
@@ -74,22 +78,21 @@ class Blockchain @Autowired constructor(
                 result
             }
             require(transactions.isNotEmpty()) { "No transactions to mine" }
-            val newBlock = Poet.generateBlock(transactions, blocks, currentNode)
+            val newBlock = Poet.generateBlock(transactions, lastBlock, currentNode)
+            log.info("Mined a new block! $newBlock")
 
             ensureActive()
             launch(Dispatchers.IO) {
                 blockRepository.save(newBlock)
             }
 
-            nodeList.map {
-                launch(Dispatchers.IO) {
-                    try {
+            nodesRepository.findAll().forEach {
+                if (it != BlockchainApplication.NODE) {
+                    launch(Dispatchers.IO) {
                         nodesService.sendBlock(it.url, newBlock)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
                     }
                 }
-            }.joinAll()
+            }
         }
 
         try {

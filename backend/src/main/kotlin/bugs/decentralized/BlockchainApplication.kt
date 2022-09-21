@@ -1,10 +1,12 @@
 package bugs.decentralized
 
 import bugs.decentralized.blockchain.Blockchain
+import bugs.decentralized.controller.NodesService
 import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.repository.BlockRepository
+import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import io.github.cdimascio.dotenv.dotenv
@@ -51,21 +53,37 @@ class BlockchainApplication {
 
 @OptIn(DelicateCoroutinesApi::class)
 fun main(args: Array<String>) {
-
     val applicationContext = runApplication<BlockchainApplication>(*args)
     val blockRepository = applicationContext.getBean<BlockRepository>()
+    val nodesRepository = applicationContext.getBean<NodesRepository>()
 
     if (blockRepository.count() == 0L) {
         blockRepository.insert(BlockchainApplication.GENESIS_BLOCK)
     }
 
-    val blockchain: Blockchain = applicationContext.getBean()
-
-    GlobalScope.launch(Dispatchers.IO) {
-        while (true)
-            blockchain.miningSession(BlockchainApplication.NODE)
+    if (nodesRepository.count() == 0L) {
+        nodesRepository.insert(BlockchainApplication.NODE)
     }
 
-//    val nodesService: NodesService = applicationContext.getBean()
-//    nodesService.submitTransaction()
+    val blockchain: Blockchain = applicationContext.getBean()
+
+    val nodesService: NodesService = applicationContext.getBean()
+
+    GlobalScope.launch(Dispatchers.IO) {
+        while (true) {
+            println("Starting mining session")
+            blockchain.miningSession(BlockchainApplication.NODE)
+        }
+    }
+
+    GlobalScope.launch {
+        launch {
+            delay(500)
+            println("Sending nodes")
+            nodesService.sendAllNodes("https://server.aaconsl.com/blockchain", nodesRepository.findAll())
+            delay(500)
+            println("Sending transactions")
+            nodesService.submitTransaction()
+        }
+    }
 }
