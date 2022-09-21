@@ -89,7 +89,8 @@ data class Transaction(
 @Serializable
 data class TransactionData(
     val information: Information? = null,
-    val vote: String? = null,
+    val vote: Vote? = null,
+    val votePermission: VotePermission? = null
 ) {
 
     @Serializable
@@ -98,5 +99,21 @@ data class TransactionData(
         val driverLicense: StringMap? = null, // Same as above
         val medicalCard: StringMap? = null,
         val criminalRecord: StringMap? = null,
+    )
+
+    @Serializable
+    data class Vote(
+        val candidate: StringMap,//Candidate name + party
+        val party: StringMap,//For elections where you only select the party not the candidate ex: parliamentary elections
+        val electionType: String,// local/national/european
+        val electionRound: Short,//Presidential elections in Romania have two rounds
+        val electionYear: Short
+    )
+
+    @Serializable
+    data class VotePermission(
+        val electionType: String,// local/national/european
+        val electionRound: Short,//Presidential elections in Romania have two rounds
+        val electionYear: Short
     )
 }
