@@ -1,5 +1,6 @@
 package bugs.decentralized.model
 
+import bugs.decentralized.model.information.PollingStation
 import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.StringMap
 import bugs.decentralized.utils.ecdsa.Sign
@@ -11,6 +12,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
+import java.util.*
 
 /**
  * See https://ethereum.org/en/developers/docs/transactions/
@@ -35,7 +37,7 @@ data class Transaction(
      */
     val signature: SignatureData,
     /**
-     * a sequentially incrementing counter which indicate the transaction number from the account
+     * a sequentially incrementing counter which indicates the transaction number from the account
      * This must be unique per sender
      */
     val nonce: Long,
@@ -99,21 +101,32 @@ data class TransactionData(
         val driverLicense: StringMap? = null, // Same as above
         val medicalCard: StringMap? = null,
         val criminalRecord: StringMap? = null,
+        val publicAccountKey: PublicAccountKey? = null
     )
 
     @Serializable
     data class Vote(
-        val candidate: StringMap,//Candidate name + party
-        val party: StringMap,//For elections where you only select the party not the candidate ex: parliamentary elections
-        val electionType: String,// local/national/european
-        val electionRound: Short,//Presidential elections in Romania have two rounds
-        val electionYear: Short
+        val candidate: String? = null, // For some elections this is not necessary
+        val party: String,
+        val votePermission: VotePermission
     )
 
     @Serializable
     data class VotePermission(
-        val electionType: String,// local/national/european
-        val electionRound: Short,//Presidential elections in Romania have two rounds
-        val electionYear: Short
+        val electionType: String, // local / national / european
+        val electionRound: Short, // Presidential elections in Romania have two rounds
+        val electionYear: Short,
+        val pollingStation: PollingStation
     )
 }
+
+object ElectionTypes {
+    const val p = "Presidential"
+    const val l = "Local"
+    const val eu = "European"
+}
+
+
+
+
+

@@ -8,6 +8,7 @@ import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
+import bugs.decentralized.repository.PollingStationRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.Sign
