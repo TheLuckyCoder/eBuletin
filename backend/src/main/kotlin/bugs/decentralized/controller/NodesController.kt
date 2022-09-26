@@ -4,21 +4,18 @@ import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.blockchain.Poet
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
-import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.PollingStationRepository
 import bugs.decentralized.repository.TransactionsRepository
+import bugs.decentralized.utils.InvalidTransactionException
 import bugs.decentralized.utils.LoggerExtensions
-import bugs.decentralized.utils.ecdsa.Sign
+import bugs.decentralized.utils.TransactionValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
@@ -114,22 +111,19 @@ class NodesController @Autowired constructor(
                 .body("A transaction that already is in the blockchain has been received")
         }
 
-        val receiverPublicAccountKey = try {
-            val publicKey = Sign.signedMessageToKey(Json.encodeToString(transaction.data), transaction.signature)
-            PublicAccountKey(Hex.toHexString(publicKey.toByteArray()))
+        try {
+            TransactionValidator.verifySignature(transaction)
         } catch (e: SignatureException) {
             log.error("Transaction has an invalid signature")
-            return ResponseEntity.badRequest().body("Transaction has an invalid signature")
-        }
-
-        val toAddress = receiverPublicAccountKey.toAddress()
-        if (transaction.sender != toAddress) {
-            log.error("Transaction's senders address and signature don't match")
             return ResponseEntity.badRequest()
-                .body("Transaction's senders address and signature don't match")
+                .body("Transaction has an invalid signature")
+        } catch (e: InvalidTransactionException) {
+            log.error(e.message)
+            return ResponseEntity.badRequest().body(e.message)
         }
 
         transactionsRepository.transactionsPool.add(transaction)
+        log.info("Received new transaction from other node")
 
         return ResponseEntity.accepted().build()
     }
@@ -150,9 +144,9 @@ class NodesController @Autowired constructor(
                             nodesRepository.save(node)
                         } else if (nodesService.pingNode(node.url)) { // Only add active nodes to the database
                             nodesRepository.save(node)
-                            nodesService.sendAllNodes(node.url, nodesRepository.findAll())
                         }
 
+                        nodesService.sendAllNodes(node.url, nodesRepository.findAll())
                         log.info("Added new Node($node)")
                     }
                 }

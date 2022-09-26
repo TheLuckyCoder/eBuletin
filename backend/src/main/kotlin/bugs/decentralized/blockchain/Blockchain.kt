@@ -105,26 +105,26 @@ class Blockchain @Autowired constructor(
         }
     }
 
-   companion object {
-       fun verify(blocks: List<Block>) {
-           check(blocks.isNotEmpty()) { "Blockchain can't be empty" }
-           check(blocks[0] == GENESIS_BLOCK) { "Invalid first block!" }
+    companion object {
+        fun verify(blocks: List<Block>) {
+            check(blocks.isNotEmpty()) { "Blockchain can't be empty" }
+            check(blocks[0] == GENESIS_BLOCK) { "Invalid first block!" }
 
-           for (i in 1 until blocks.size) {
-               val current = blocks[i]
-               val previous = blocks[i - 1]
+            for (i in 1 until blocks.size) {
+                val current = blocks[i]
+                val previous = blocks[i - 1]
 
-               check(current.blockNumber == i.toLong()) { "Invalid block number ${current.blockNumber} for block #$i!" }
+                check(current.blockNumber == i.toLong()) { "Invalid block number ${current.blockNumber} for block #$i!" }
 
-               check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
+                check(current.parentHash == previous.hash) { "Invalid previous block hash for block #$i!" }
 
-               check(
-                   current.timestamp > previous.timestamp + Poet.computeWaitTime(
-                       previous,
-                       previous.nodeAddress
-                   )
-               ) { "Invalid waitTime for block #$i!" }
-           }
-       }
-   }
+                check(
+                    current.timestamp > previous.timestamp + Poet.computeWaitTime(
+                        previous,
+                        previous.nodeAddress
+                    )
+                ) { "Invalid waitTime for block #$i!" }
+            }
+        }
+    }
 }

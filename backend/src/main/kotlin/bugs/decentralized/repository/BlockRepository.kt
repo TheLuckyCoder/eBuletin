@@ -7,6 +7,12 @@ import org.springframework.data.mongodb.repository.MongoRepository
 
 interface BlockRepository : MongoRepository<Block, ULong>
 
+fun BlockRepository.getTransactionsCountBy(address: AccountAddress): Long {
+    return findAll().sumOf { block ->
+        block.transactions.count { it.sender == address }.toLong()
+    }
+}
+
 fun BlockRepository.getInformationAtAddress(
     address: AccountAddress,
     onInformationFound: (TransactionData.Information) -> Unit

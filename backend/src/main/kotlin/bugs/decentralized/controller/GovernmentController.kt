@@ -1,22 +1,20 @@
 package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
-import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
+import bugs.decentralized.utils.InvalidTransactionException
 import bugs.decentralized.utils.LoggerExtensions
-import bugs.decentralized.utils.ecdsa.Sign
+import bugs.decentralized.utils.TransactionValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PutMapping
@@ -61,19 +59,15 @@ class GovernmentController @Autowired constructor(
                 .body("A transaction that already is in the blockchain has been received")
         }
 
-        val receiverPublicAccountKey = try {
-            val publicKey = Sign.signedMessageToKey(Json.encodeToString(transaction.data), transaction.signature)
-            PublicAccountKey(Hex.toHexString(publicKey.toByteArray()))
+        try {
+            TransactionValidator.verifySignature(transaction)
         } catch (e: SignatureException) {
             log.error("Transaction has an invalid signature")
-            return@coroutineScope ResponseEntity.badRequest().body("Transaction has an invalid signature")
-        }
-
-        val toAddress = receiverPublicAccountKey.toAddress()
-        if (transaction.sender != toAddress) {
-            log.error("Transaction's senders address and signature don't match")
             return@coroutineScope ResponseEntity.badRequest()
-                .body("Transaction's senders address and signature don't match")
+                .body("Transaction has an invalid signature")
+        } catch (e: InvalidTransactionException) {
+            log.error(e.message)
+            return@coroutineScope ResponseEntity.badRequest().body(e.message)
         }
 
         val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
@@ -94,10 +88,7 @@ class GovernmentController @Autowired constructor(
 
         transaction.data.information?.idCard?.forEach { (key, value) ->
             when (key) {
-                IdCard::cnp.name -> {
-                    check(value.length == 13)
-                }
-
+                IdCard::cnp.name -> check(value.length == 13)
                 IdCard::lastName.name -> check(value.length >= 3)
                 IdCard::firstName.name -> check(value.length >= 3)
                 IdCard::address.name -> check(value.length >= 5)
@@ -121,7 +112,7 @@ class GovernmentController @Autowired constructor(
             }
 
         transactionsRepository.transactionsPool.add(transaction)
-        log.info("Received new transaction")
+        log.info("Received new transaction from government")
 
         ResponseEntity.accepted().build()
     }
