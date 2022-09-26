@@ -6,6 +6,7 @@ import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.model.information.MedicalCard
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.getInformationAtAddress
+import bugs.decentralized.repository.getTransactionsCountBy
 import bugs.decentralized.utils.ecdsa.ECIES
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,6 +22,14 @@ import org.springframework.web.bind.annotation.RestController
 class CitizenController @Autowired constructor(
     private val blockRepository: BlockRepository,
 ) {
+
+    @GetMapping("/nonce/{publicKey}")
+    fun nonce(@PathVariable publicKey: PublicAccountKey): String {
+        val address = publicKey.toAddress()
+
+        val count = blockRepository.getTransactionsCountBy(address)
+        return ECIES.encrypt(publicKey, count.toString())
+    }
 
     /**
      * @param publicKey must be a HEX string representing a public address of an account
