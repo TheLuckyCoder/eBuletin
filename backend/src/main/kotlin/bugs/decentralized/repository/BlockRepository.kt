@@ -11,9 +11,7 @@ fun BlockRepository.getInformationAtAddress(
     address: AccountAddress,
     onInformationFound: (TransactionData.Information) -> Unit
 ) {
-    val blocks = findAll()
-
-    for (block in blocks) {
+    for (block in findAll()) {
         for (transaction in block.transactions) {
             if (transaction.receiver != address)
                 continue

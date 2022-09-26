@@ -1,6 +1,5 @@
 package bugs.decentralized.model
 
-import bugs.decentralized.model.information.PollingStation
 import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.StringMap
 import bugs.decentralized.utils.ecdsa.Sign
@@ -12,7 +11,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
-import java.util.*
 
 /**
  * See https://ethereum.org/en/developers/docs/transactions/
@@ -101,7 +99,6 @@ data class TransactionData(
         val driverLicense: StringMap? = null, // Same as above
         val medicalCard: StringMap? = null,
         val criminalRecord: StringMap? = null,
-        val publicAccountKey: PublicAccountKey? = null
     )
 
     @Serializable
@@ -125,8 +122,3 @@ object ElectionTypes {
     const val l = "Local"
     const val eu = "European"
 }
-
-
-
-
-

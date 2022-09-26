@@ -1,14 +1,18 @@
 package bugs.decentralized.controller
 
 import bugs.decentralized.model.PublicAccountKey
+import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.model.information.MedicalCard
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.getInformationAtAddress
+import bugs.decentralized.repository.getTransactionsBy
 import bugs.decentralized.utils.ecdsa.ECIES
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -56,5 +60,11 @@ class CitizenController @Autowired constructor(
         val medicalCard = MedicalCard.fromMap(map)
 
         return ECIES.encrypt(publicKey, medicalCard)
+    }
+
+    @PostMapping
+    fun vote(@RequestBody transaction: Transaction) {
+        // TODO Validate if the account has vote permission
+        // Add transaction to pool
     }
 }
