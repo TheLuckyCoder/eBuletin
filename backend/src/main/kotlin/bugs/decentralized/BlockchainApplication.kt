@@ -9,11 +9,7 @@ import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import io.github.cdimascio.dotenv.dotenv
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

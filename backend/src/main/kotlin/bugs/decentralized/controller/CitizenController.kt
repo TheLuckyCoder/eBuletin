@@ -5,17 +5,13 @@ import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.information.DriverLicense
 import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.model.information.MedicalCard
-import bugs.decentralized.repository.BlockRepository
-import bugs.decentralized.repository.getInformationAtAddress
-import bugs.decentralized.repository.getTransactionsCountBy
+import bugs.decentralized.repository.*
+import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.ECIES
+import kotlinx.coroutines.coroutineScope
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 
 /**
  * Used to communicate with the citizens
@@ -24,7 +20,13 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/citizen")
 class CitizenController @Autowired constructor(
     private val blockRepository: BlockRepository,
+    private val nodesRepository: NodesRepository,
+    private val nodesService: NodesService,
+    private val nodesController: NodesController
 ) {
+
+    private val log = LoggerExtensions.getLogger<NodesController>()
+    private val transactionsRepository = TransactionsRepository
 
     @GetMapping("/nonce/{publicKey}")
     fun nonce(@PathVariable publicKey: PublicAccountKey): String {
@@ -87,9 +89,28 @@ class CitizenController @Autowired constructor(
         return ECIES.encrypt(publicKey, driverLicense)
     }
 
-    @PostMapping
-    fun vote(@RequestBody transaction: Transaction) {
-        // TODO Validate if the account has vote permission
-        // Add transaction to pool
+    @PostMapping("/vote/{publicKey}")
+    suspend fun vote(
+        @RequestBody transaction: Transaction
+    ): ResponseEntity<String> = coroutineScope {
+        //check transaction
+        val isTransactionValid: ResponseEntity<String>? =
+            Transaction.checkTransaction(transaction, transactionsRepository, log, blockRepository)
+
+        if (isTransactionValid != null)
+            return@coroutineScope isTransactionValid
+
+        if (!nodesController.blocks()
+                .any { block ->
+                    block.transactions.any {
+                        it.data.votePermission?.electionData == transaction.data.vote?.electionData
+                                && it.receiver == transaction.sender
+                    }
+                }
+        ) return@coroutineScope ResponseEntity.badRequest().body("Invalid vote permission")
+
+        nodesController.sendTransactionToAllNodes(transaction)
+        log.info("Received new transaction from government")
+        ResponseEntity.accepted().build()
     }
 }

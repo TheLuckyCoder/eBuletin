@@ -104,7 +104,7 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
     /**
      * This is used for debugging
      */
-    fun submitVote(){
+    fun submitVote() {
         val address = PublicAccountKey(
             "042b5e6991a99b37d8cbe752e53a13190615487834d7365045ed2acf5b637ea94940a326647d51709e8d0e71079393d2cc5815d02f48ff184271e6fa3897d3758c"
         ).toAddress()
@@ -116,11 +116,10 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
                 vote = TransactionData.Vote(
                     candidate = "Mircea",
                     party = "AUR Sibiu",
-                    votePermission = TransactionData.VotePermission(
+                    electionData = TransactionData.ElectionData(
                         electionType = ElectionTypes.eu,
                         electionRound = 1,
                         electionYear = 2022,
-                        pollingStation = PollingStation("Scoala Gimnaziala Nicolae Iorga", 1)
                     )
                 )
             ),

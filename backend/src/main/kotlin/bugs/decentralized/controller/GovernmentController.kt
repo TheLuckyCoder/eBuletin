@@ -1,17 +1,12 @@
 package bugs.decentralized.controller
 
-import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
-import bugs.decentralized.utils.InvalidTransactionException
 import bugs.decentralized.utils.LoggerExtensions
-import bugs.decentralized.utils.TransactionValidator
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -21,7 +16,6 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.security.SignatureException
 
 /**
  * Used to communicate between a node and a local special government application
@@ -32,6 +26,7 @@ class GovernmentController @Autowired constructor(
     private val nodesService: NodesService,
     private val blockRepository: BlockRepository,
     private val nodesRepository: NodesRepository,
+    private val nodesController: NodesController,
 ) {
 
     private val log = LoggerExtensions.getLogger<NodesController>()
@@ -39,52 +34,13 @@ class GovernmentController @Autowired constructor(
 
     @PutMapping("/submit_transaction")
     suspend fun submitTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> = coroutineScope {
-        log.info("Received new transaction")
+        val isTransactionValid: ResponseEntity<String>? =
+            Transaction.checkTransaction(transaction, transactionsRepository, log, blockRepository)
+
+        if (isTransactionValid != null)
+            return@coroutineScope isTransactionValid
+
         val hash = transaction.hash
-
-        if (transactionsRepository.getTransaction().any { it.hash == hash }) {
-            log.warn("A transaction that already is in the pool has been received")
-            return@coroutineScope ResponseEntity.badRequest()
-                .body("A transaction that already is in the pool has been received")
-        }
-
-        val blocks = blockRepository.findAll()
-        val transactionInBlocks = blocks.any { block ->
-            block.transactions.any { it.hash == hash }
-        }
-
-        if (transactionInBlocks) {
-            log.error("A transaction that already is in the blockchain has been received")
-            return@coroutineScope ResponseEntity.badRequest()
-                .body("A transaction that already is in the blockchain has been received")
-        }
-
-        try {
-            TransactionValidator.verifySignature(transaction)
-        } catch (e: SignatureException) {
-            log.error("Transaction has an invalid signature")
-            return@coroutineScope ResponseEntity.badRequest()
-                .body("Transaction has an invalid signature")
-        } catch (e: InvalidTransactionException) {
-            log.error(e.message)
-            return@coroutineScope ResponseEntity.badRequest().body(e.message)
-        }
-
-        val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
-            block.transactions.any { it.receiver == transaction.receiver }
-        }
-
-        if (!isNotTheFirstTransactionWithThisReceiver) {
-            // The first transaction should always contain all the id's information
-            try {
-                IdCard.fromMap(transaction.data.information!!.idCard!!)
-                // We don't need the value, just the exception if the value doesn't exist :)
-            } catch (e: Exception) {
-                log.error("It's the first transaction of this account, but the IdCard is not complete", e)
-                return@coroutineScope ResponseEntity.badRequest()
-                    .body("It's the first transaction of this account, but the IdCard is not complete")
-            }
-        }
 
         transaction.data.information?.idCard?.forEach { (key, value) ->
             when (key) {
@@ -101,19 +57,8 @@ class GovernmentController @Autowired constructor(
             }
         }
 
-        val nodes = nodesRepository.findAll()
-        nodes.asSequence()
-            .filter { it != BlockchainApplication.NODE }
-            .forEach { node ->
-                launch(Dispatchers.IO) {
-                    log.info("Sending transaction to $node")
-                    nodesService.sendTransaction(node.url, transaction)
-                }
-            }
-
-        transactionsRepository.transactionsPool.add(transaction)
+        nodesController.sendTransactionToAllNodes(transaction)
         log.info("Received new transaction from government")
-
         ResponseEntity.accepted().build()
     }
 }

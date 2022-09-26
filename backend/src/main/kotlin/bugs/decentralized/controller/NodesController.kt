@@ -7,11 +7,8 @@ import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
-import bugs.decentralized.repository.PollingStationRepository
 import bugs.decentralized.repository.TransactionsRepository
-import bugs.decentralized.utils.InvalidTransactionException
 import bugs.decentralized.utils.LoggerExtensions
-import bugs.decentralized.utils.TransactionValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
@@ -19,13 +16,7 @@ import kotlinx.coroutines.launch
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
-import java.security.SignatureException
+import org.springframework.web.bind.annotation.*
 
 /**
  * Used to communicate with the other validators in the network
@@ -91,41 +82,41 @@ class NodesController @Autowired constructor(
 
     @PutMapping("/transaction")
     fun newTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> {
+        val isTransactionValid: ResponseEntity<String>? =
+            Transaction.checkTransaction(transaction, transactionsRepository, log, blockRepository)
+
+        if (isTransactionValid != null)
+            return isTransactionValid
+
+        //check vote permission if existent
+        if (transaction.data.vote != null && !blocks()
+                .any { block ->
+                    block.transactions.any {
+                        it.data.votePermission?.electionData == transaction.data.vote.electionData
+                                && it.receiver == transaction.sender
+                    }
+                }
+        ) return ResponseEntity.badRequest().body("Invalid vote permission")
+
         log.info("Received new transaction")
-        val hash = transaction.hash
-
-        if (transactionsRepository.getTransaction().any { it.hash == hash }) {
-            log.warn("A transaction that already is in the pool has been received")
-            return ResponseEntity.badRequest()
-                .body("A transaction that already is in the pool has been received")
-        }
-
-        val blocks = blockRepository.findAll()
-        val transactionInBlocks = blocks.any { block ->
-            block.transactions.any { it.hash == hash }
-        }
-
-        if (transactionInBlocks) {
-            log.error("A transaction that already is in the blockchain has been received")
-            return ResponseEntity.badRequest()
-                .body("A transaction that already is in the blockchain has been received")
-        }
-
-        try {
-            TransactionValidator.verifySignature(transaction)
-        } catch (e: SignatureException) {
-            log.error("Transaction has an invalid signature")
-            return ResponseEntity.badRequest()
-                .body("Transaction has an invalid signature")
-        } catch (e: InvalidTransactionException) {
-            log.error(e.message)
-            return ResponseEntity.badRequest().body(e.message)
-        }
 
         transactionsRepository.transactionsPool.add(transaction)
         log.info("Received new transaction from other node")
 
         return ResponseEntity.accepted().build()
+    }
+
+    suspend fun sendTransactionToAllNodes(transaction: Transaction) = coroutineScope {
+        nodes().asSequence()
+            .filter { it != BlockchainApplication.NODE }
+            .forEach { node ->
+                launch(Dispatchers.IO) {
+                    log.info("Sending transaction to $node")
+                    nodesService.sendTransaction(node.url, transaction)
+                }
+            }
+
+        transactionsRepository.transactionsPool.add(transaction)
     }
 
     @GetMapping("/nodes")
