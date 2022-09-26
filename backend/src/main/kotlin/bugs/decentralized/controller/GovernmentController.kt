@@ -97,7 +97,6 @@ class GovernmentController @Autowired constructor(
                 IdCard::cnp.name -> {
                     check(value.length == 13)
                 }
-
                 IdCard::lastName.name -> check(value.length >= 3)
                 IdCard::firstName.name -> check(value.length >= 3)
                 IdCard::address.name -> check(value.length >= 5)
@@ -121,7 +120,7 @@ class GovernmentController @Autowired constructor(
             }
 
         transactionsRepository.transactionsPool.add(transaction)
-        log.info("Received new transaction")
+        log.info("Received new transaction from goverment")
 
         ResponseEntity.accepted().build()
     }

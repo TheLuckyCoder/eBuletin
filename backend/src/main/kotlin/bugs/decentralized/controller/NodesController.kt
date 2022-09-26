@@ -129,6 +129,7 @@ class NodesController @Autowired constructor(
         }
 
         transactionsRepository.transactionsPool.add(transaction)
+        log.info("Received new transaction from other node")
 
         return ResponseEntity.accepted().build()
     }
@@ -149,9 +150,9 @@ class NodesController @Autowired constructor(
                             nodesRepository.save(node)
                         } else if (nodesService.pingNode(node.url)) { // Only add active nodes to the database
                             nodesRepository.save(node)
-                            nodesService.sendAllNodes(node.url, nodesRepository.findAll())
                         }
 
+                        nodesService.sendAllNodes(node.url, nodesRepository.findAll())
                         log.info("Added new Node($node)")
                     }
                 }

@@ -32,7 +32,7 @@ class BlockchainApplication {
 
         val NODE = Node(
             KEYS.publicAccount.toAddress().value,
-            DOTENV.get("BLOCKCHAIN_SERVER_URL", "http://127.0.0.1:11225/")
+            DOTENV.get("BLOCKCHAIN_SERVER_URL")
         )
 
         private fun generateKeys(): SimpleKeyPair {
