@@ -1,6 +1,7 @@
 package bugs.decentralized.controller
 
 import bugs.decentralized.model.PublicAccountKey
+import bugs.decentralized.model.information.DriverLicense
 import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.model.information.MedicalCard
 import bugs.decentralized.repository.BlockRepository
@@ -56,5 +57,21 @@ class CitizenController @Autowired constructor(
         val medicalCard = MedicalCard.fromMap(map)
 
         return ECIES.encrypt(publicKey, medicalCard)
+    }
+
+    @GetMapping("/driver_license/{publicKey}")
+    fun getDriverLicense(@PathVariable publicKey: PublicAccountKey): String {
+        val address = publicKey.toAddress()
+
+        val map = HashMap<String, String>()
+        blockRepository.getInformationAtAddress(address) {
+            it.driverLicense?.let { driverLicense ->
+                map.putAll(driverLicense)
+            }
+        }
+
+        val driverLicense = DriverLicense.fromMap(map)
+
+        return ECIES.encrypt(publicKey, driverLicense)
     }
 }

@@ -2,7 +2,6 @@ package bugs.decentralized.utils.ecdsa
 
 import bugs.decentralized.model.PublicAccountKey
 import org.bouncycastle.util.encoders.Hex
-import java.lang.StringBuilder
 import java.math.BigInteger
 
 class SimpleKeyPair(private val private: ByteArray, private val public: ByteArray) {

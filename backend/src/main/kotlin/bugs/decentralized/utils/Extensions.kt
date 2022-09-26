@@ -1,4 +1,7 @@
 package bugs.decentralized.utils
 
-fun Long.epsilonEquals(other: Long, epsilon: Long) = other in this - epsilon..this + epsilon
+interface Extensions
+
+infix fun Extensions.epsilonEquals(other: Long) = other
+
 typealias StringMap = Map<String, String>

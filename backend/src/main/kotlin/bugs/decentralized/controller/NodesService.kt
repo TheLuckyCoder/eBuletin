@@ -10,9 +10,7 @@ import bugs.decentralized.model.information.IdCard
 import kotlinx.datetime.LocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.client.RestTemplateBuilder
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.client.getForEntity
 import org.springframework.web.client.postForObject
 import java.net.URI
 import java.time.Duration
