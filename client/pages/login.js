@@ -64,14 +64,24 @@ const Login = () => {
               {!encryptedPrivateKey ? "Import Account" : " Log in!"}
             </Typography>
             {!encryptedPrivateKey && (
-              <ControlledTextField
-                name="privateKey"
-                label="Private Key"
-                multiline
-                rows={4}
-                control={control}
-                rules={{ required: true }}
-              />
+              <>
+                <ControlledTextField
+                  name="publicKey"
+                  label="Public Key"
+                  multiline
+                  rows={4}
+                  control={control}
+                  rules={{ required: true }}
+                />
+                <ControlledTextField
+                  name="privateKey"
+                  label="Private Key"
+                  multiline
+                  rows={4}
+                  control={control}
+                  rules={{ required: true }}
+                />
+              </>
             )}
             <ControlledTextField
               name="password"

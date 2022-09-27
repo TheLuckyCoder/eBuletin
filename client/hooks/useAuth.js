@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import { AuthContext } from "../authContext";
 import { getErrorMessage } from "../helpers/general";
 import CryptoJS from "crypto-js";
-import { PrivateKey } from 'eciesjs'
-
+import { PrivateKey } from "eciesjs";
 
 
 export const useAuth = () => {
@@ -14,6 +13,7 @@ export const useAuth = () => {
   const [error, setError] = useState(null);
   const router = useRouter();
   const [encryptedPrivateKey, setEncryptedPrivateKey] = useState(false);
+  const [initializing, setInitializing] = useState(true);
 
   const encryptPrivateKey = (privateKey, password) => {
     const obj = {
@@ -44,7 +44,7 @@ export const useAuth = () => {
     const publicKey = privateKey.publicKey;
 
     const pubKeyStr = publicKey.toHex();
-    const privateKeyStr = privateKey.toHex()
+    const privateKeyStr = privateKey.toHex();
 
     setPrivateKey(privateKeyStr);
     return pubKeyStr;
@@ -63,12 +63,13 @@ export const useAuth = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const encryptedPrivateKey = encryptPrivateKey(
-        data.privateKey,
-        data.password
-      );
+      const { privateKey, publicKey, password } = data;
+      const encryptedPrivateKey = encryptPrivateKey(privateKey, password);
       setEncryptedPrivateKey(encryptedPrivateKey);
+      setPrivateKey(privateKey);
+      window.localStorage.setItem("publicKey", publicKey);
       window.localStorage.setItem("encryptedPrivateKey", encryptedPrivateKey);
+      window.sessionStorage.setItem("privateKey", privateKey);
       setIsAuthenticated(true);
     } catch (e) {
       console.error(e);
@@ -115,6 +116,7 @@ export const useAuth = () => {
   };
 
   const onMount = () => {
+    setInitializing(false);
     const encryptedPrivateKey = window.localStorage.getItem(
       "encryptedPrivateKey"
     );
@@ -124,6 +126,7 @@ export const useAuth = () => {
   useEffect(onMount, []);
 
   return {
+    initializing,
     logout,
     isAuthenticated,
     login,

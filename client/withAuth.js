@@ -1,10 +1,15 @@
+import { CircularProgress } from "@mui/material";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/login";
 
 const withAuth = (Component) => {
   const Auth = (props) => {
     // Login data added to props via redux-store (or use react context for example)
-    const { isAuthenticated, isLoading, error } = useAuth();
+    const { isAuthenticated, isLoading, error, initializing } = useAuth();
+
+    if (initializing) {
+      return <CircularProgress />;
+    }
 
     // If user is not logged in, return login component
     if (!isAuthenticated) {
