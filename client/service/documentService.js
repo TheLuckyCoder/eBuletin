@@ -6,3 +6,4 @@ export const getIdCardReq = async (pubKey) => {
   return axios.get(base + "buletin/" + pubKey);
 };
 
+

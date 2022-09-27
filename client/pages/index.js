@@ -2,6 +2,8 @@ import { Grid, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import Image from "next/image";
 import Wave from "react-wavify";
+import { mainColor, secondaryColor, waveColor } from "../colors";
+import { HealthIssuranceCard } from "../components/DocumentCards/HealthIssuranceCard";
 import { IdCard } from "../components/DocumentCards/IdCard";
 import { useDocuments } from "../hooks/useDocuments";
 import withAuth from "../withAuth";
@@ -13,6 +15,10 @@ function Home() {
     return <div>Loading...</div>;
   }
 
+  if (idCard.error) {
+    return <div>{idCard.error}</div>;
+  }
+
   return (
     <>
       <Grid
@@ -20,17 +26,26 @@ function Home() {
         justifyContent="center"
         alignItems="center"
         spacing={2}
-        sx={{ backgroundColor: "#ABBBE1", padding: 2 }}
+        sx={{
+          background: mainColor,
+          padding: 2,
+        }}
       >
         <Grid item xs={12}>
           <Typography
-            color="white"
+            color={secondaryColor}
             variant="h1"
-            fontWeight="400"
             sx={{ opacity: "0.95" }}
           >
             Salut, <br />
             {idCard.data.firstName}
+          </Typography>
+          <Typography
+            color={secondaryColor}
+            variant="body"
+            sx={{ opacity: "0.95" }}
+          >
+            pe pagina accesta ai acces la toate documentele tale
           </Typography>
         </Grid>
         <Grid item xs={12}>
@@ -52,21 +67,25 @@ function Home() {
         style={{
           position: "relative",
           left: "0",
-          height: "60px",
-          bottom: "0px",
-          background: "#ABBBE1",
+          height: "71px",
+          bottom: "100px",
+          top: "-0.5px",
+          background: waveColor,
         }}
         fill="#d9dfe9"
         paused={false}
         options={{
-          height: 25,
+          height: 30,
           amplitude: 20,
           speed: 0.2,
           points: 5,
         }}
       />
       <Box padding={2}>
-        <IdCard idCardInfo={idCard.data} />
+        <Box display="flex" gap={4} flexDirection="column">
+          <IdCard idCardInfo={idCard.data} />
+          <HealthIssuranceCard healthIssuranceInfo={idCard.data} />
+        </Box>
       </Box>
     </>
   );

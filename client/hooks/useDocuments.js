@@ -1,7 +1,8 @@
 import React from "react";
 import { getIdCardReq } from "../service/documentService";
 import { useKeys } from "./useKeys";
-import { decrypt, PrivateKey, encrypt } from "eciesjs";
+import { handleError, handleSuccess } from "../helpers/documentHelpers";
+import { decryptJsonData } from "../helpers/general";
 
 export const useDocuments = () => {
   const { pubKey, privateKey } = useKeys();
@@ -13,25 +14,11 @@ export const useDocuments = () => {
 
   const initIdCard = async () => {
     try {
-      const resp = await getIdCardReq(pubKey);
-      const encryptedData = resp.data;
-      const encr = encrypt(pubKey, "this is a message");
-      // transform encrypted data to array buffer
-
-      const encryptedDataArrayBuffer = Buffer.from(encryptedData, "hex");
-      const decryptedData = decrypt(privateKey, encryptedDataArrayBuffer);
-      setIdCard({
-        data: JSON.parse(decryptedData),
-        loading: false,
-        error: null,
-      });
+      const { data } = await getIdCardReq(pubKey);
+        handleSuccess(decryptJsonData(data, privateKey), setIdCard);
     } catch (e) {
       console.error(e);
-      setIdCard({
-        data: null,
-        loading: false,
-        error: e,
-      });
+      handleError(e, setIdCard);
     }
   };
 

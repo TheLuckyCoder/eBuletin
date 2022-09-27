@@ -1,20 +1,20 @@
 import { Card, Divider, Grid, Typography } from "@mui/material";
 import Image from "next/image";
 import React from "react";
+import { cardColor } from "../../colors";
 import { getBirthDateFromCnp } from "../../helpers/documentHelpers";
 
 export const IdCard = ({ idCardInfo }) => {
-  console.log(idCardInfo);
   return (
     <Card
       sx={{
-        background:
-          "linear-gradient(104.61deg, #DBCDE6 2.15%, #ECD0D2 49.72%, #FED7BA 98.42%);",
+        background: cardColor,
         minHeight: 200,
         maxWidth: 400,
         maxHeight: 350,
         padding: "10px",
       }}
+      raised
       elevation={7}
     >
       <Grid container spacing={1} height="100%">
@@ -28,7 +28,7 @@ export const IdCard = ({ idCardInfo }) => {
             />
           </Grid>
           <Grid item container xs={9}>
-            <Grid container justifyContent="space-between" item xs={12}>
+            <Grid container spacing={1} justifyContent="space-between" item xs={12}>
               <Grid item>
                 <Typography>Romania</Typography>
               </Grid>
