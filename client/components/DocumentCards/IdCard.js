@@ -9,7 +9,7 @@ export const IdCard = ({ idCardInfo }) => {
     <Card
       sx={{
         background: cardColor,
-        minHeight: 200,
+        minHeight: "270px",
         maxWidth: 400,
         maxHeight: 350,
         padding: "10px",
@@ -28,7 +28,13 @@ export const IdCard = ({ idCardInfo }) => {
             />
           </Grid>
           <Grid item container xs={9}>
-            <Grid container spacing={1} justifyContent="space-between" item xs={12}>
+            <Grid
+              container
+              spacing={1}
+              justifyContent="space-between"
+              item
+              xs={12}
+            >
               <Grid item>
                 <Typography>Romania</Typography>
               </Grid>
@@ -59,7 +65,7 @@ export const IdCard = ({ idCardInfo }) => {
             />
           </Grid>
         </Grid>
-        <Grid container item xs={12} height="100%">
+        <Grid container item xs={12}>
           <Grid item xs={3}>
             <Image
               style={{}}
@@ -159,9 +165,7 @@ export const IdCard = ({ idCardInfo }) => {
               >
                 Adresa / Address
               </Typography>
-              <Typography fontSize="0.7rem">
-                {idCardInfo?.address}
-              </Typography>
+              <Typography fontSize="0.7rem">{idCardInfo?.address}</Typography>
             </Grid>
             <Grid item xs={12}>
               <Typography

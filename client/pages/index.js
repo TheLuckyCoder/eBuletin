@@ -22,18 +22,26 @@ function Home() {
 
   return (
     <>
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
-        spacing={2}
+      <Box
         sx={{
           background: mainColor,
-          padding: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "20px",
+          flexWrap: "wrap",
+          rowGap: "20px",
         }}
       >
-        <Grid item xs={12}>
+        <Box
+          sx={{
+            flex: "1 1 30%",
+            maxWidth: "450px",
+            minWidth: " 250px",
+          }}
+        >
           <Typography
+            maxWidth="400px"
             color={secondaryColor}
             variant="h1"
             sx={{ opacity: "0.95" }}
@@ -48,22 +56,24 @@ function Home() {
           >
             pe pagina accesta ai acces la toate documentele tale
           </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <Image
-            style={{
-              alignSelf: "center",
-            }}
-            objectFit="contain"
-            objectPosition="center"
-            src="/images/homeIlustration.svg"
-            alt="Logo"
-            width={400}
-            height={170}
-            quality={100}
-          />
-        </Grid>
-      </Grid>
+        </Box>
+        <Image
+          style={{
+            flex: "1 1 50%",
+            minWidth: "301px",
+            minHeight: "250px",
+            maxWidth: "450px",
+            alignSelf: "center",
+          }}
+          objectFit="contain"
+          objectPosition="center"
+          src="/images/homeIlustration.svg"
+          alt="Logo"
+          width={400}
+          height={170}
+          quality={100}
+        />
+      </Box>
       <Wave
         style={{
           position: "relative",
@@ -83,7 +93,13 @@ function Home() {
         }}
       />
       <Box padding={2}>
-        <Box display="flex" gap={4} flexDirection="column">
+        <Box
+          display="flex"
+          gap={4}
+          flexWrap="wrap"
+          alignItems="center"
+          justifyContent="center"
+        >
           <IdCard idCardInfo={idCard.data} />
           <HealthIssuranceCard healthIssuranceInfo={idCard.data} />
           <DriverLicense />

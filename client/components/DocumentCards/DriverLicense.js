@@ -9,7 +9,7 @@ export const DriverLicense = () => {
     <Card
       sx={{
         background: cardColor,
-        minHeight: 200,
+        minHeight: "220px",
         maxWidth: 400,
         maxHeight: 350,
         padding: "10px",
