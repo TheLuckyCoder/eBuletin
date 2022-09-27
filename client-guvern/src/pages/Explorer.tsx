@@ -51,7 +51,7 @@ export const Explorer = () => {
         getRowId={(row) => row.blockNumber}
         autoHeight
         error={blocks.error ? true : undefined}
-        pageSize={10}
+        pageSize={15}
         rowsPerPageOptions={[10]}
       />
       <Transactions transactions={transactions} />

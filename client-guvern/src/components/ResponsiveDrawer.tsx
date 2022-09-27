@@ -44,9 +44,8 @@ export default function ResponsiveDrawer(props: Props) {
   const drawer = (
     <div>
       <Toolbar sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-        <TimelineIcon />
         <Typography variant="h6" noWrap>
-          Some App{" "}
+          Aplicație Guvern
         </Typography>
       </Toolbar>
       <Divider />
@@ -56,7 +55,7 @@ export default function ResponsiveDrawer(props: Props) {
             <ListItemIcon sx={{ ml: 2 }}>
               <Dashboard />
             </ListItemIcon>
-            <ListItemText primary="Dashboard" />
+            <ListItemText primary="Cetățeni" />
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
@@ -64,7 +63,7 @@ export default function ResponsiveDrawer(props: Props) {
             <ListItemIcon sx={{ ml: 2 }}>
               <Explore />
             </ListItemIcon>
-            <ListItemText primary="Explorer" />
+            <ListItemText primary="Block Explorer" />
           </ListItemButton>
         </ListItem>
       </List>

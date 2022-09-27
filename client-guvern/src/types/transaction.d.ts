@@ -4,10 +4,31 @@ export interface IIdCard {
   firstName: string;
   birthLocation: string;
   sex: "M" | "F";
-  series: "SB";
+  series: string;
   seriesNumber: string;
   validity: string;
   issuedBy: string;
+}
+
+export interface IMedicalCard {
+  lastName: string;
+  firstName: string;
+  insuranceCode: number;
+  documentNumber: number;
+  expiryDate: string;
+}
+
+export interface DriverLicense {
+  lastName: string;
+  firstName: string;
+  issueDate: string;
+  expirationDate: string;
+  issuedBy: string;
+  cnp: number;
+  licenseNumber: string;
+  validFrom: string;
+  validUntil: string;
+  categories: string[];
 }
 
 export interface ISignature {
@@ -17,18 +38,23 @@ export interface ISignature {
 }
 
 export interface ITransactionInformation {
-  idCard: IIdCard;
+  idCard?: IIdCard;
+  medicalCard?: IMedicalCard;
+  driverLicense?: DriverLicense;
 }
 
+export interface ITransactionData {
+  information?: ITransactionInformation;
+}
 
 export interface ITransaction {
   hash: string;
   sender: string;
   receiver: string;
-  data: {
-    information: ITransactionInformation;
-  };
+  data: ITransactionData;
   signature: ISignature;
-  nounce: number;
+  nonce: number;
   [key: string]: any;
 }
+
+

@@ -1,17 +1,17 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
-import { Explorer, Home, Login } from "../pages";
-import { ProtectedRoute } from "./ProtectedRoute";
+import {Route, Routes} from "react-router-dom";
+import {Explorer, Home, Login, IdCardForm} from "../pages";
+import {ProtectedRoute} from "./ProtectedRoute";
 
 export const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<Login/>}/>
       <Route
         path="/"
         element={
           <ProtectedRoute>
-            <Home />
+            <Home/>
           </ProtectedRoute>
         }
       />
@@ -19,7 +19,15 @@ export const AppRoutes = () => {
         path="/explorer"
         element={
           <ProtectedRoute>
-            <Explorer />
+            <Explorer/>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create/id_card"
+        element={
+          <ProtectedRoute>
+            <IdCardForm/>
           </ProtectedRoute>
         }
       />
