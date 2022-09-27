@@ -1,10 +1,18 @@
 import { Card, Divider, Grid, Typography } from "@mui/material";
 import Image from "next/image";
-import React from "react";
+import React, { useCallback } from "react";
 import { cardColor } from "../../colors";
 import { getBirthDateFromCnp } from "../../helpers/documentHelpers";
 
 export const IdCard = ({ idCardInfo }) => {
+  const downloadIdCard = useCallback(async () => {
+    const container = document.getElementById("healthIssuranceCard");
+    const root = container.create;
+    const canvas = await html2canvas(container, {
+      useCORS: true,
+    });
+    downloadjs(canvas.toDataURL(), "healthIssuranceCard.png");
+  }, []);
   return (
     <Card
       sx={{
