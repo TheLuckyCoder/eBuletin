@@ -25,54 +25,50 @@ function Home() {
       <Box
         sx={{
           background: mainColor,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "20px",
-          flexWrap: "wrap",
-          rowGap: "20px",
         }}
       >
         <Box
           sx={{
-            flex: "1 1 30%",
-            maxWidth: "450px",
-            minWidth: " 250px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+            flexWrap: "wrap",
+            rowGap: "20px",
+            maxWidth: "1000px",
+            margin: "auto",
           }}
         >
-          <Typography
-            maxWidth="400px"
-            color={secondaryColor}
-            variant="h1"
-            sx={{ opacity: "0.95" }}
-          >
-            Salut, <br />
-            {idCard.data.firstName}
-          </Typography>
-          <Typography
-            color={secondaryColor}
-            variant="body"
-            sx={{ opacity: "0.95" }}
-          >
-            pe pagina accesta ai acces la toate documentele tale
-          </Typography>
+          <Box maxWidth="400px">
+            <Typography
+              color={secondaryColor}
+              variant="h1"
+              sx={{ opacity: "0.95" }}
+            >
+              Salut, <br />
+              {idCard.data.firstName}
+            </Typography>
+            <Typography
+              color={secondaryColor}
+              variant="body"
+              sx={{ opacity: "0.95" }}
+            >
+              pe pagina accesta ai acces la toate documentele tale
+            </Typography>
+          </Box>
+          <Image
+            style={{
+              margin: "auto",
+            }}
+            objectFit="contain"
+            objectPosition="center"
+            src="/images/homeIlustration.svg"
+            alt="Logo"
+            width={400}
+            height={170}
+            quality={100}
+          />
         </Box>
-        <Image
-          style={{
-            flex: "1 1 50%",
-            minWidth: "301px",
-            minHeight: "250px",
-            maxWidth: "450px",
-            alignSelf: "center",
-          }}
-          objectFit="contain"
-          objectPosition="center"
-          src="/images/homeIlustration.svg"
-          alt="Logo"
-          width={400}
-          height={170}
-          quality={100}
-        />
       </Box>
       <Wave
         style={{
@@ -81,7 +77,7 @@ function Home() {
           height: "71px",
           bottom: "100px",
           top: "-0.5px",
-          background: waveColor,
+          background: mainColor,
         }}
         fill="#d9dfe9"
         paused={false}
