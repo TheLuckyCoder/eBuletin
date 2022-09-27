@@ -14,19 +14,21 @@ export const HealthIssuranceCard = ({ healthIssuranceInfo }) => {
     const canvas = await html2canvas(container, {
       useCORS: true,
     });
-    downloadjs(canvas.toDataURL(), "healthIssuranceCard.png");
+    downloadjs(canvas.toDataURL(), "CardDeSanatate.png");
   }, []);
 
   return (
     <div
       style={{
-        boxShadow: "3px 6px 4px rgba(0, 0, 0, 0.25)",
+        boxShadow:
+          "0px 4px 10px -2px rgb(0 0 0 / 20%), 0px 7px 10px 1px rgb(0 0 0 / 14%), 0px 2px 16px 1px rgb(0 0 0 / 12%)",
+        borderRadius: "20px",
       }}
     >
       <Card
         sx={{
           background: cardColor,
-          minHeight: "220px",
+          minHeight: "270px",
           maxWidth: 400,
           maxHeight: 350,
           padding: "10px",
@@ -60,7 +62,7 @@ export const HealthIssuranceCard = ({ healthIssuranceInfo }) => {
             </Grid>
           </Grid>
 
-          <Grid container item xs={12} height="100%" spacing={0.5}>
+          <Grid container item xs={12} spacing={0.5} mt="auto">
             <Grid item xs={12}>
               <Typography
                 fontWeight="light"
@@ -124,7 +126,10 @@ export const HealthIssuranceCard = ({ healthIssuranceInfo }) => {
                 </Typography>
               </Grid>
               <Grid item data-html2canvas-ignore="true">
-                <IconButton onClick={downloadHealthIssurance}>
+                <IconButton
+                  data-html2canvas-ignore="true"
+                  onClick={downloadHealthIssurance}
+                >
                   <div html2canvas-ignore="true">
                     <Image
                       src="/images/share.png"
