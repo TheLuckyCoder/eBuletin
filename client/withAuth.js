@@ -1,4 +1,5 @@
 import { CircularProgress } from "@mui/material";
+import ResponsiveDrawer from "./components/ResponsiveDrawer";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/login";
 
@@ -17,7 +18,11 @@ const withAuth = (Component) => {
     }
 
     // If user is logged in, return original component
-    return <Component {...props} />;
+    return (
+      <ResponsiveDrawer>
+        <Component {...props} />
+      </ResponsiveDrawer>
+    );
   };
 
   // Copy getInitial props so it will run as well

@@ -14,6 +14,9 @@ let theme = createTheme({
     background: {
       default: "#000000",
     },
+    primary: {
+      main: "#1B2E4C",
+    },
   },
 });
 theme = responsiveFontSizes(theme);
@@ -21,9 +24,11 @@ function MyApp({ Component, pageProps }) {
   return (
     <AuthProvider>
       <CssBaseline />
-      <Box sx={{
-        background: "#D9DFE9"
-      }}>
+      <Box
+        sx={{
+          background: "#D9DFE9",
+        }}
+      >
         <ThemeProvider theme={theme}>
           <Component {...pageProps} />
         </ThemeProvider>
