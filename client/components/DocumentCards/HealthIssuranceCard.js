@@ -1,10 +1,25 @@
 import { Card, Divider, Grid, IconButton, Typography } from "@mui/material";
 import Image from "next/image";
-import React from "react";
+import React, { useCallback } from "react";
 import { cardColor } from "../../colors";
 import { getBirthDateFromCnp } from "../../helpers/documentHelpers";
+import downloadjs from "downloadjs";
+import html2canvas from "html2canvas";
 
 export const HealthIssuranceCard = ({ healthIssuranceInfo }) => {
+  const downloadHealthIssurance = useCallback(async () => {
+    const canvas = await html2canvas(
+      document.getElementById("healthIssuranceCard"),
+      {
+        letterRendering: 1,
+        allowTaint: true,
+        onrendered: function (canvas) {},
+        useCORS: true,
+      }
+    );
+    downloadjs(canvas.toDataURL(), "healthIssuranceCard.png");
+  }, []);
+
   return (
     <Card
       sx={{
@@ -16,6 +31,7 @@ export const HealthIssuranceCard = ({ healthIssuranceInfo }) => {
       }}
       raised
       elevation={7}
+      id="healthIssuranceCard"
     >
       <Grid container spacing={1} height="100%">
         <Grid
@@ -106,9 +122,9 @@ export const HealthIssuranceCard = ({ healthIssuranceInfo }) => {
               </Typography>
             </Grid>
             <Grid item>
-              <IconButton>
+              <IconButton onClick={downloadHealthIssurance}>
                 <Image
-                  src="/images/share.svg"
+                  src="/images/share.png"
                   width="20px"
                   height="20px"
                   objectFit="contain"
