@@ -18,7 +18,7 @@ export const DriverLicense = () => {
       elevation={7}
       id="healthIssuranceCard"
     >
-      <Grid container spacing={0.5}>
+      <Grid container spacing={1.5}>
         <Grid container item xs={3}>
           <Grid item xs={12}>
             <Image
