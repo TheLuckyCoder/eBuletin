@@ -3,6 +3,7 @@ import { Box } from "@mui/system";
 import Image from "next/image";
 import Wave from "react-wavify";
 import { mainColor, secondaryColor, waveColor } from "../colors";
+import { DriverLicense } from "../components/DocumentCards/DriverLicense";
 import { HealthIssuranceCard } from "../components/DocumentCards/HealthIssuranceCard";
 import { IdCard } from "../components/DocumentCards/IdCard";
 import { useDocuments } from "../hooks/useDocuments";
@@ -85,6 +86,7 @@ function Home() {
         <Box display="flex" gap={4} flexDirection="column">
           <IdCard idCardInfo={idCard.data} />
           <HealthIssuranceCard healthIssuranceInfo={idCard.data} />
+          <DriverLicense />
         </Box>
       </Box>
     </>
