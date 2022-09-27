@@ -4,7 +4,7 @@ import { AuthContext } from "../authContext";
 import { getErrorMessage } from "../helpers/general";
 import CryptoJS from "crypto-js";
 import { PrivateKey } from "eciesjs";
-
+import { deleteKeys } from "../helpers/auth";
 
 export const useAuth = () => {
   const { isAuthenticated, setIsAuthenticated, setPrivateKey, privateKey } =
@@ -78,6 +78,13 @@ export const useAuth = () => {
     setIsLoading(false);
   };
 
+  const removeKeys = () => {
+    deleteKeys();
+    setEncryptedPrivateKey(null);
+    setPrivateKey(null);
+    setIsAuthenticated(false);
+  };
+
   const login = async (password) => {
     setIsLoading(true);
     setError(false);
@@ -112,6 +119,7 @@ export const useAuth = () => {
   };
 
   const logout = () => {
+    deleteKeys();
     setIsAuthenticated(false);
   };
 
@@ -136,5 +144,6 @@ export const useAuth = () => {
     register,
     generateKeyPair,
     onImport,
+    removeKeys
   };
 };

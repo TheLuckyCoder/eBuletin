@@ -12,11 +12,13 @@ import { useRouter } from "next/router";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { ControlledTextField } from "../components/ControlledInputs/ControlledTextField";
+import { deleteKeys } from "../helpers/auth";
 import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
   const router = useRouter();
-  const { error, isLoading, login, encryptedPrivateKey, onImport } = useAuth();
+  const { error, isLoading, login, encryptedPrivateKey, onImport, removeKeys } =
+    useAuth();
   const {
     handleSubmit,
     control,
@@ -99,13 +101,22 @@ const Login = () => {
             >
               {!encryptedPrivateKey ? "Import" : "Log in!"}
             </Button>
-            <Link
-              component="button"
-              underline="hover"
-              onClick={() => router.push("/register", null, { shallow: true })}
-            >
-              Register
-            </Link>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <Link
+                component="button"
+                underline="hover"
+                onClick={() =>
+                  router.push("/register", null, { shallow: true })
+                }
+              >
+                Register
+              </Link>
+              {encryptedPrivateKey && (
+                <Link component="button" underline="hover" onClick={removeKeys}>
+                  Delete Current Keys
+                </Link>
+              )}
+            </Box>
             {error && <Typography color="error">{error}</Typography>}
           </CardContent>
         </form>
