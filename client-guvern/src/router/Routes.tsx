@@ -1,6 +1,6 @@
 import React from "react";
 import {Route, Routes} from "react-router-dom";
-import {Explorer, Home, Login, IdCardForm, DriverLicenseForm} from "../pages";
+import {Explorer, Home, Login, IdCardForm, DriverLicenseForm, MedicalCardForm} from "../pages";
 import {ProtectedRoute} from "./ProtectedRoute";
 
 export const AppRoutes = () => {
@@ -36,6 +36,14 @@ export const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DriverLicenseForm/>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create/medical_card"
+        element={
+          <ProtectedRoute>
+            <MedicalCardForm/>
           </ProtectedRoute>
         }
       />

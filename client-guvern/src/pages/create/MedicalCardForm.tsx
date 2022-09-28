@@ -4,38 +4,33 @@ import {useForm} from "react-hook-form";
 import {ControlledTextField} from "../../components";
 import * as Yup from "yup";
 import {yupResolver} from "@hookform/resolvers/yup";
-import {IDriverLicense} from "../../types/transaction";
+import {IDriverLicense, IMedicalCard} from "../../types/transaction";
 
 const formSchema = Yup.object({
   blockchainAddress: Yup.string().required(),
   lastName: Yup.string().required(),
   firstName: Yup.string().required(),
-  placeAndDateOfBirth: Yup.string().required(),
-  issueDate: Yup.string().required(),
-  expirationDate: Yup.string().required(),
-  issuedBy: Yup.string().required(),
-  licenseNumber: Yup.string().required(),
-  validFrom: Yup.string().required(),
-  validUntil: Yup.string().required(),
-  categories: Yup.string().required(),
+  insuranceCode: Yup.number().required(),
+  documentNumber: Yup.number().required(),
+  expiryDate: Yup.string().required(),
 }).required();
 
 const formConfig = {
   resolver: yupResolver(formSchema),
 };
 
-interface FormDriverLicense extends IDriverLicense {
+interface FormMedicalCard extends IMedicalCard {
   blockchainAddress: string
 }
 
-export const DriverLicenseForm = () => {
+export const MedicalCardForm = () => {
   const {
     handleSubmit,
     control,
     formState: {errors},
-  } = useForm<FormDriverLicense>(formConfig);
+  } = useForm<FormMedicalCard>(formConfig);
 
-  const handleRegister = (data: FormDriverLicense) => {
+  const handleRegister = (data: FormMedicalCard) => {
     // register(data);
   };
 
@@ -64,7 +59,7 @@ export const DriverLicenseForm = () => {
           >
 
             <Typography variant="h4" textAlign="center">
-              Creează permis de conducere
+              Creează card de sănătate
             </Typography>
 
             <Grid container spacing={1}>
@@ -79,28 +74,13 @@ export const DriverLicenseForm = () => {
                 <ControlledTextField name="firstName" label="Prenume" control={control}/>
               </Grid>
               <Grid item xs={12}>
-                <ControlledTextField name="placeAndDateOfBirth" label="Data și locul nașterii" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="issueDate" label="Data eliberării" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="expirationDate" label="Data expirării" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="issuedBy" label="Eliberat de" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="licenseNumber" label="Numărul permisului" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="validFrom" label="Valabilitate" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="validUntil" label="Emisă de" control={control}/>
+                <ControlledTextField name="insuranceCode" label="Cod de asigurat" control={control}/>
               </Grid>
               <Grid item xs={12}>
-                <ControlledTextField name="categories" label="Coduri" control={control}/>
+                <ControlledTextField name="documentNumber" label="Număr de document" control={control}/>
+              </Grid>
+              <Grid item xs={12}>
+                <ControlledTextField name="expiryDate" label="Data expirării" control={control}/>
               </Grid>
             </Grid>
 

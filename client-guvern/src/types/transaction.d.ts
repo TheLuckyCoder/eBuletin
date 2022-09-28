@@ -18,7 +18,7 @@ export interface IMedicalCard {
   expiryDate: string;
 }
 
-export interface DriverLicense {
+export interface IDriverLicense {
   lastName: string;
   firstName: string;
   placeAndDateOfBirth: string;
@@ -40,7 +40,7 @@ export interface ISignature {
 export interface ITransactionInformation {
   idCard?: IIdCard;
   medicalCard?: IMedicalCard;
-  driverLicense?: DriverLicense;
+  driverLicense?: IDriverLicense;
 }
 
 export interface ITransactionData {

@@ -5,7 +5,6 @@ import {ControlledTextField} from "../../components";
 import * as Yup from "yup";
 import {yupResolver} from "@hookform/resolvers/yup";
 import {IIdCard} from "../../types/transaction";
-import {generatePrivateKey, generatePublicKey} from "../../helpers/transaction";
 
 const formSchema = Yup.object({
   blockchainAddress: Yup.string().required(),
