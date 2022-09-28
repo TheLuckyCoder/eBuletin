@@ -72,6 +72,7 @@ export const useAuth = () => {
       window.localStorage.setItem("encryptedPrivateKey", encryptedPrivateKey);
       window.sessionStorage.setItem("privateKey", privateKey);
       setIsAuthenticated(true);
+      router.push("/");
     } catch (e) {
       console.error(e);
       setError(e.message || "Something went wrong");
