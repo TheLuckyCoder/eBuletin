@@ -61,6 +61,17 @@ export function generatePrivateKey(): Uint8Array {
   return secp.utils.randomPrivateKey()
 }
 
+export function generatePublicKey(privateKey: PrivKey) {
+  return secp.getPublicKey(privateKey, false)
+}
+
+export async function generateBlockchainAddress(publicKey: Uint8Array): Promise<string> {
+  const sha = await secp.utils.sha256(publicKey)
+  const shaHex = secp.utils.bytesToHex(sha)
+  const last20Hex = shaHex.slice(shaHex.length - 20)
+  return "0x" + last20Hex.toString()
+}
+
 export async function createTransaction(
   privateKey: PrivKey,
   receiverAddress: string,
@@ -80,7 +91,7 @@ export async function createTransaction(
 
   return {
     hash: secp.utils.bytesToHex(msgHash),
-    sender: "",
+    sender: await generateBlockchainAddress(pubKey),
     receiver: receiverAddress,
     data,
     signature: secSignature,

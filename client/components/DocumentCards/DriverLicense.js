@@ -69,12 +69,12 @@ export const DriverLicense = () => {
             </Grid>
             <Grid item xs={12}>
               <Typography textTransform="uppercase" fontSize="0.7rem">
-                1. ISPILANTE
+                1. Filea
               </Typography>
             </Grid>
             <Grid item xs={12}>
               <Typography textTransform="uppercase" fontSize="0.7rem">
-                2. Sentiment Brusli
+                2. Razvan
               </Typography>
             </Grid>
             <Grid item xs={12}>

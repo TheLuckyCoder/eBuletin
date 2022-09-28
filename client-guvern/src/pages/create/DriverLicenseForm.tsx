@@ -1,42 +1,41 @@
-import {Box, Button, Card, CardContent, Grid, Typography,} from "@mui/material";
+import {Box, Button, Card, CardContent, Grid, Typography} from "@mui/material";
 import React from "react";
 import {useForm} from "react-hook-form";
 import {ControlledTextField} from "../../components";
 import * as Yup from "yup";
 import {yupResolver} from "@hookform/resolvers/yup";
-import {IIdCard} from "../../types/transaction";
-import {generatePrivateKey, generatePublicKey} from "../../helpers/transaction";
+import {DriverLicense} from "../../types/transaction";
 
 const formSchema = Yup.object({
   blockchainAddress: Yup.string().required(),
-  cnp: Yup.number().required(),
   lastName: Yup.string().required(),
   firstName: Yup.string().required(),
-  birthLocation: Yup.string().required(),
-  sex: Yup.string().required(),
-  series: Yup.string().required(),
-  seriesNumber: Yup.string().required(),
-  validity: Yup.string().required(),
+  placeAndDateOfBirth: Yup.string().required(),
+  issueDate: Yup.string().required(),
+  expirationDate: Yup.string().required(),
   issuedBy: Yup.string().required(),
+  licenseNumber: Yup.string().required(),
+  validFrom: Yup.string().required(),
+  validUntil: Yup.string().required(),
+  categories: Yup.string().required(),
 }).required();
 
 const formConfig = {
   resolver: yupResolver(formSchema),
 };
 
-interface FormIdCard extends IIdCard {
+interface FormDriverLicense extends DriverLicense {
   blockchainAddress: string
 }
 
-export const IdCardForm = () => {
+export const DriverLicenseForm = () => {
   const {
     handleSubmit,
     control,
     formState: {errors},
-  } = useForm<FormIdCard>(formConfig);
+  } = useForm<FormDriverLicense>(formConfig);
 
-  const handleRegister = (data: FormIdCard) => {
-
+  const handleRegister = (data: FormDriverLicense) => {
     // register(data);
   };
 
@@ -65,7 +64,7 @@ export const IdCardForm = () => {
           >
 
             <Typography variant="h4" textAlign="center">
-              Creează card de identitate
+              Creează permis de conducere
             </Typography>
 
             <Grid container spacing={1}>
@@ -74,33 +73,35 @@ export const IdCardForm = () => {
                 <ControlledTextField name="blockchainAddress" label="Adresa pe Blockchain" control={control}/>
               </Grid>
               <Grid item xs={12}>
-                <ControlledTextField name="cnp" label="CNP" control={control}/>
-              </Grid>
-              <Grid item xs={12}>
                 <ControlledTextField name="lastName" label="Nume" control={control}/>
               </Grid>
               <Grid item xs={12}>
                 <ControlledTextField name="firstName" label="Prenume" control={control}/>
               </Grid>
-              <Grid item xs={10}>
-                <ControlledTextField name="birthLocation" label="Loc de naștere" control={control}/>
-              </Grid>
-              <Grid item xs={2}>
-                <ControlledTextField name="sex" label="Sex" control={control}/>
+              <Grid item xs={12}>
+                <ControlledTextField name="placeAndDateOfBirth" label="Data și locul nașterii" control={control}/>
               </Grid>
               <Grid item xs={6}>
-                <ControlledTextField name="series" label="Seria" control={control}/>
+                <ControlledTextField name="issueDate" label="Data eliberării" control={control}/>
               </Grid>
               <Grid item xs={6}>
-                <ControlledTextField name="seriesNumber" label="Număr serie" control={control}/>
+                <ControlledTextField name="expirationDate" label="Data expirării" control={control}/>
               </Grid>
               <Grid item xs={6}>
-                <ControlledTextField name="validity" label="Valabilitate" control={control}/>
+                <ControlledTextField name="issuedBy" label="Eliberat de" control={control}/>
               </Grid>
               <Grid item xs={6}>
-                <ControlledTextField name="issuedBy" label="Emisă de" control={control}/>
+                <ControlledTextField name="licenseNumber" label="Numărul permisului" control={control}/>
               </Grid>
-
+              <Grid item xs={6}>
+                <ControlledTextField name="validFrom" label="Valabilitate" control={control}/>
+              </Grid>
+              <Grid item xs={6}>
+                <ControlledTextField name="validUntil" label="Emisă de" control={control}/>
+              </Grid>
+              <Grid item xs={12}>
+                <ControlledTextField name="categories" label="Coduri" control={control}/>
+              </Grid>
             </Grid>
 
             <Button

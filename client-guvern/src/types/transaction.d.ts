@@ -21,10 +21,10 @@ export interface IMedicalCard {
 export interface DriverLicense {
   lastName: string;
   firstName: string;
+  placeAndDateOfBirth: string;
   issueDate: string;
   expirationDate: string;
   issuedBy: string;
-  cnp: number;
   licenseNumber: string;
   validFrom: string;
   validUntil: string;
