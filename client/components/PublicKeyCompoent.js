@@ -6,7 +6,7 @@ import { backgroundColor, cardColor } from "../colors";
 export const PublicKeyCompoent = ({ publicKey, error }) => {
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(publicKey);
-    window.alert("Copied public key to clipboard");
+    window.alert("Adresa a fost copiata in clipboard");
   };
 
   if (error) {
