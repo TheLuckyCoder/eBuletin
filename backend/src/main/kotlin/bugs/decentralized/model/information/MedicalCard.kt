@@ -11,8 +11,8 @@ import kotlinx.serialization.json.Json
 data class MedicalCard(
     val lastName: String,
     val firstName: String,
-    val insuranceCode: UInt, // 20 length
-    val documentNumber: UInt,
+    val insuranceCode: Long, // 20 length
+    val documentNumber: Long, // 16 length
     val expiryDate: LocalDate,
 ) {
 
@@ -29,8 +29,8 @@ data class MedicalCard(
         fun fromMap(map: StringMap) = MedicalCard(
             lastName = map["lastName"]!!,
             firstName = map["firstName"]!!,
-            insuranceCode = map["insuranceCode"]!!.toUInt(),
-            documentNumber = map["documentNumber"]!!.toUInt(),
+            insuranceCode = map["insuranceCode"]!!.toLong(),
+            documentNumber = map["documentNumber"]!!.toLong(),
             expiryDate = Json.decodeFromString(map["expiryDate"]!!),
         )
     }
