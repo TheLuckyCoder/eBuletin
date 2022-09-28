@@ -5,7 +5,7 @@ import { handleError, handleSuccess } from "../helpers/documentHelpers";
 import { decryptJsonData } from "../helpers/general";
 
 export const useDocuments = () => {
-  const { pubKey, privateKey, loadingKeys, keysError } = useKeys();
+  const { pubKey, privateKey, loadingKeys, keysError, address } = useKeys();
   const [idCard, setIdCard] = React.useState({
     data: null,
     loading: true,
@@ -36,6 +36,8 @@ export const useDocuments = () => {
   return {
     idCard,
     pubKey,
-    keysError
+    keysError,
+    address
+    
   };
 };

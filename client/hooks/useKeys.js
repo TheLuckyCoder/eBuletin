@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 
 import { PrivateKey } from "eciesjs";
+import { getAddressFromPublicKey } from "../helpers/general";
 
 export const useKeys = () => {
   const [pubKey, setPubKey] = useState(null);
   const [privateKey, setPrivateKey] = useState(null);
   const [loadingKeys, setLoading] = useState(true);
   const [keysError, setError] = useState(null);
+  const [address, setAddress] = useState(null);
 
   const getPublicKey = (prvKey) => {
     const key = PrivateKey.fromHex(prvKey);
@@ -25,7 +27,9 @@ export const useKeys = () => {
       if (!publicKey) {
         throw new Error("No public key found");
       }
+      const address = await getAddressFromPublicKey(publicKey);
       setPrivateKey(privateKey);
+      setAddress(address);
       setPubKey(publicKey);
     } catch (e) {
       console.error(e);
@@ -38,5 +42,5 @@ export const useKeys = () => {
     initKeys();
   }, []);
 
-  return { pubKey, privateKey, loadingKeys, keysError };
+  return { pubKey, privateKey, loadingKeys, keysError, address };
 };

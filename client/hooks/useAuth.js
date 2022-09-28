@@ -20,7 +20,6 @@ export const useAuth = () => {
       privateKey,
       loggedIn: true,
     };
-    console.log("encrypting private key", privateKey);
     const encryptedPrivateKey = CryptoJS.AES.encrypt(
       JSON.stringify(obj),
       password
@@ -32,11 +31,8 @@ export const useAuth = () => {
     return encryptedPrivateKey;
   };
 
-  // 0x6f6ecad28dbc2148627e1227b4577a1e26018962567ed96ffbf4f4eed5260762
-
   const decryptPrivateKey = (encryptedPrivateKey, password) => {
     const bytes = CryptoJS.AES.decrypt(encryptedPrivateKey, password);
-    console.log(bytes.toString(CryptoJS.enc.Utf8));
     const decryptedPrivateKey = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
     if (decryptedPrivateKey.loggedIn) {
       console.log("decryptedPrivateKey", decryptedPrivateKey.privateKey);
@@ -70,7 +66,6 @@ export const useAuth = () => {
     setError(null);
     try {
       const { privateKey, password } = data;
-      console.log("privateKey", privateKey);
       const encryptedPrivateKey = encryptPrivateKey(privateKey, password);
       setEncryptedPrivateKey(encryptedPrivateKey);
       setPrivateKey(privateKey);

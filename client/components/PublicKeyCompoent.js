@@ -46,7 +46,7 @@ export const PublicKeyCompoent = ({ publicKey, error }) => {
           color="primary"
           gutterBottom
         >
-          Cheia ta publica:
+          Adresa ta pe Blockchain:
         </Typography>
         <Typography
           sx={{ wordWrap: "break-word", cursor: "pointer" }}

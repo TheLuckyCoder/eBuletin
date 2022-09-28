@@ -12,7 +12,7 @@ import { useDocuments } from "../hooks/useDocuments";
 import withAuth from "../withAuth";
 
 function Home() {
-  const { idCard, pubKey, keysError } = useDocuments();
+  const { idCard, pubKey, keysError,  address} = useDocuments();
 
   if (idCard.loading) {
     return <div>Loading...</div>;
@@ -87,7 +87,7 @@ function Home() {
           points: 5,
         }}
       />
-      <PublicKeyCompoent error={keysError} publicKey={pubKey} />
+      <PublicKeyCompoent error={keysError} publicKey={address} />
       <Documents idCard={idCard} />
     </>
   );
