@@ -77,11 +77,11 @@ const Register = () => {
             }}
           >
             <Typography variant="h4" textAlign="center">
-              Register
+              Inregistreaza-te
             </Typography>
             <ControlledTextField
               name="publicKey"
-              label="Public Key"
+              label="Cheie Publica"
               multiline
               rows={4}
               control={control}
@@ -89,22 +89,22 @@ const Register = () => {
             />
             <ControlledTextField
               name="privateKey"
-              label="Private Key"
+              label="Cheie Privata"
               multiline
               rows={4}
               control={control}
               rules={{ required: true }}
             />
-            <Button onClick={handleGenerateKey} variant="outlined">Generate Keys</Button>
+            <Button onClick={handleGenerateKey} variant="outlined">Genereaza Cheiile</Button>
             <ControlledTextField
               name="password"
-              label="Password"
+              label="Parola"
               control={control}
               type="password"
             />
             <ControlledTextField
               name="confirmPassword"
-              label="Confirm Password"
+              label="Confirma Parola"
               control={control}
               type="password"
             />
@@ -114,14 +114,14 @@ const Register = () => {
               sx={{ maxWidth: "200px" }}
               type="submit"
             >
-              Register
+              Inregistreaza-te!
             </Button>
             <Link
               component="button"
               underline="hover"
               onClick={() => router.push("/login")}
             >
-              Login
+              Logheaza-te
             </Link>
             {error && <Typography color="error">{error}</Typography>}
           </CardContent>
