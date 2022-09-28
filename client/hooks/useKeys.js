@@ -1,11 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { PrivateKey } from "eciesjs";
 
 export const useKeys = () => {
-  const [pubKey, setPubKey] = useState(
-    "042b5e6991a99b37d8cbe752e53a13190615487834d7365045ed2acf5b637ea94940a326647d51709e8d0e71079393d2cc5815d02f48ff184271e6fa3897d3758c"
-  );
-  const [privateKey, setPrivateKey] = useState(
-    "1bd963d71f8605b8fa33d3b1861e650d4525c7f51bd38b1240348ab50cfc13d0"
-  );
-  return { pubKey, privateKey };
+  const [pubKey, setPubKey] = useState(null);
+  const [privateKey, setPrivateKey] = useState(null);
+  const [loadingKeys, setLoading] = useState(true);
+  const [keysError, setError] = useState(null);
+
+  const getPublicKey = (prvKey) => {
+    const key = PrivateKey.fromHex(prvKey);
+    return key.publicKey.uncompressed.toString("hex");
+  };
+
+  const initKeys = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const privateKey = window.sessionStorage.getItem("privateKey");
+      if (!privateKey) {
+        throw new Error("No private key found");
+      }
+      const publicKey = getPublicKey(privateKey);
+      if (!publicKey) {
+        throw new Error("No public key found");
+      }
+      setPrivateKey(privateKey);
+      setPubKey(publicKey);
+    } catch (e) {
+      console.error(e);
+      setError(e.message || "Something went wrong while initializing keys");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    initKeys();
+  }, []);
+
+  return { pubKey, privateKey, loadingKeys, keysError };
 };

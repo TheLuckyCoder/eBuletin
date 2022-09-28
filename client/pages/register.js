@@ -30,6 +30,7 @@ const formSchema = Yup.object({
 
 const formConfig = {
   resolver: yupResolver(formSchema),
+  reValidateMode: "onSubmit",
 };
 
 const Register = () => {
@@ -45,11 +46,11 @@ const Register = () => {
   const handleRegister = async (data) => {
     await register(data);
   };
-  console.log(errors);
 
   const handleGenerateKey = async () => {
-    const publicKey = await generateKeyPair(); // private key will be stored in memory for later encryption
+    const {publicKey, privateKey} = await generateKeyPair(); // private key will be stored in memory for later encryption
     setValue("publicKey", publicKey);
+    setValue("privateKey", privateKey);
   };
 
   return (
@@ -86,7 +87,15 @@ const Register = () => {
               control={control}
               rules={{ required: true }}
             />
-            <Button onClick={handleGenerateKey}>Generate Key</Button>
+            <ControlledTextField
+              name="privateKey"
+              label="Private Key"
+              multiline
+              rows={4}
+              control={control}
+              rules={{ required: true }}
+            />
+            <Button onClick={handleGenerateKey} variant="outlined">Generate Keys</Button>
             <ControlledTextField
               name="password"
               label="Password"

@@ -6,18 +6,16 @@ import { mainColor, secondaryColor, waveColor } from "../colors";
 import { DriverLicense } from "../components/DocumentCards/DriverLicense";
 import { HealthIssuranceCard } from "../components/DocumentCards/HealthIssuranceCard";
 import { IdCard } from "../components/DocumentCards/IdCard";
+import { Documents } from "../components/Documents";
+import { PublicKeyCompoent } from "../components/PublicKeyCompoent";
 import { useDocuments } from "../hooks/useDocuments";
 import withAuth from "../withAuth";
 
 function Home() {
-  const { idCard } = useDocuments();
+  const { idCard, pubKey, keysError } = useDocuments();
 
   if (idCard.loading) {
     return <div>Loading...</div>;
-  }
-
-  if (idCard.error) {
-    return <div>{idCard.error}</div>;
   }
 
   return (
@@ -25,6 +23,7 @@ function Home() {
       <Box
         sx={{
           background: mainColor,
+          width: "100%",
         }}
       >
         <Box
@@ -42,11 +41,11 @@ function Home() {
           <Box maxWidth="400px">
             <Typography
               color={secondaryColor}
-              variant="h1"
+              variant="h2"
               sx={{ opacity: "0.95" }}
             >
               Salut, <br />
-              {idCard.data.firstName}
+              {idCard.data?.firstName ? `${idCard.data.firstName}` : ""}
             </Typography>
             <Typography
               color={secondaryColor}
@@ -88,19 +87,8 @@ function Home() {
           points: 5,
         }}
       />
-      <Box padding={2}>
-        <Box
-          display="flex"
-          gap={4}
-          flexWrap="wrap"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <IdCard idCardInfo={idCard.data} />
-          <HealthIssuranceCard healthIssuranceInfo={idCard.data} />
-          <DriverLicense />
-        </Box>
-      </Box>
+      <PublicKeyCompoent error={keysError} publicKey={pubKey} />
+      <Documents idCard={idCard} />
     </>
   );
 }

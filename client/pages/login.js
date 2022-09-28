@@ -28,10 +28,11 @@ const Login = () => {
       username: "",
       password: "",
     },
+    reValidateMode: "onSubmit",
   });
 
   const onSubmit = (data) => {
-    console.log(encryptedPrivateKey, !!encryptedPrivateKey);
+    console.log("he?");
     if (!!encryptedPrivateKey) {
       login(data.password);
     } else {
@@ -63,21 +64,13 @@ const Login = () => {
             }}
           >
             <Typography variant="h4" textAlign="center">
-              {!encryptedPrivateKey ? "Import Account" : " Log in!"}
+              {!encryptedPrivateKey ? "Importa Cont Existent" : " Log in!"}
             </Typography>
             {!encryptedPrivateKey && (
               <>
                 <ControlledTextField
-                  name="publicKey"
-                  label="Public Key"
-                  multiline
-                  rows={4}
-                  control={control}
-                  rules={{ required: true }}
-                />
-                <ControlledTextField
                   name="privateKey"
-                  label="Private Key"
+                  label="Cheie Privata"
                   multiline
                   rows={4}
                   control={control}
@@ -87,11 +80,12 @@ const Login = () => {
             )}
             <ControlledTextField
               name="password"
-              label="Password"
+              label="Parola"
               control={control}
               autofill="current-password"
               rules={{ required: true }}
               type="password"
+              
             />
             <Button
               variant="contained"
@@ -99,7 +93,7 @@ const Login = () => {
               sx={{ maxWidth: "200px" }}
               type="submit"
             >
-              {!encryptedPrivateKey ? "Import" : "Log in!"}
+              {!encryptedPrivateKey ? "Importa" : "Logheaza-te!"}
             </Button>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <Link
@@ -109,11 +103,11 @@ const Login = () => {
                   router.push("/register", null, { shallow: true })
                 }
               >
-                Register
+                Inregistreaza-te
               </Link>
               {encryptedPrivateKey && (
                 <Link component="button" underline="hover" onClick={removeKeys}>
-                  Delete Current Keys
+                  Sterge Cheiile Curente
                 </Link>
               )}
             </Box>

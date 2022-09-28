@@ -20,19 +20,26 @@ export const useAuth = () => {
       privateKey,
       loggedIn: true,
     };
+    console.log("encrypting private key", privateKey);
     const encryptedPrivateKey = CryptoJS.AES.encrypt(
       JSON.stringify(obj),
       password
     ).toString();
-
+    console.log(
+      "equal?: ",
+      encryptedPrivateKey === decryptPrivateKey(encryptedPrivateKey, password)
+    );
     return encryptedPrivateKey;
   };
+
+  // 0x6f6ecad28dbc2148627e1227b4577a1e26018962567ed96ffbf4f4eed5260762
 
   const decryptPrivateKey = (encryptedPrivateKey, password) => {
     const bytes = CryptoJS.AES.decrypt(encryptedPrivateKey, password);
     console.log(bytes.toString(CryptoJS.enc.Utf8));
     const decryptedPrivateKey = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
     if (decryptedPrivateKey.loggedIn) {
+      console.log("decryptedPrivateKey", decryptedPrivateKey.privateKey);
       return decryptedPrivateKey.privateKey;
     } else {
       throw new Error("Invalid Password");
@@ -46,8 +53,7 @@ export const useAuth = () => {
     const pubKeyStr = publicKey.toHex();
     const privateKeyStr = privateKey.toHex();
 
-    setPrivateKey(privateKeyStr);
-    return pubKeyStr;
+    return { publicKey: pubKeyStr, privateKey: privateKeyStr };
   };
 
   const downloadPrivateKey = (privateKey) => {
@@ -63,11 +69,11 @@ export const useAuth = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const { privateKey, publicKey, password } = data;
+      const { privateKey, password } = data;
+      console.log("privateKey", privateKey);
       const encryptedPrivateKey = encryptPrivateKey(privateKey, password);
       setEncryptedPrivateKey(encryptedPrivateKey);
       setPrivateKey(privateKey);
-      window.localStorage.setItem("publicKey", publicKey);
       window.localStorage.setItem("encryptedPrivateKey", encryptedPrivateKey);
       window.sessionStorage.setItem("privateKey", privateKey);
       setIsAuthenticated(true);
@@ -103,14 +109,15 @@ export const useAuth = () => {
   const register = async (data) => {
     setIsLoading(true);
     try {
-      if (privateKey !== null) {
+      if (data.privateKey !== null) {
         window.localStorage.setItem(
           "encryptedPrivateKey",
-          encryptPrivateKey(privateKey, data.password)
+          encryptPrivateKey(data.privateKey, data.password)
         );
+        window.sessionStorage.setItem("privateKey", data.privateKey);
       }
       setIsAuthenticated(true);
-      downloadPrivateKey(privateKey);
+      downloadPrivateKey(data.privateKey);
       router.push("/");
     } catch (error) {
       setError(getErrorMessage(error));
@@ -144,6 +151,6 @@ export const useAuth = () => {
     register,
     generateKeyPair,
     onImport,
-    removeKeys
+    removeKeys,
   };
 };

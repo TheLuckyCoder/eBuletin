@@ -57,7 +57,7 @@ export default function ResponsiveDrawer(props) {
     window !== undefined ? () => window().document.body : undefined;
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box>
       <CssBaseline />
       <AppBar
         elevation={3}
@@ -107,9 +107,11 @@ export default function ResponsiveDrawer(props) {
       >
         {drawer}
       </Drawer>
-      <Box>
+      <Box >
         <Toolbar />
-        <Box width="100%">{props.children}</Box>
+        <Box width="100%">
+          {props.children}
+        </Box>
       </Box>
     </Box>
   );
