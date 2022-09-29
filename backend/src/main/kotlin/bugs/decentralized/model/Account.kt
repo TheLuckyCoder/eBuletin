@@ -18,7 +18,8 @@ value class PublicAccountKey(val value: String) {
 @JvmInline
 value class AccountAddress(val value: String) {
 
-    init {
-        require(value.startsWith("0x")) { "Account Address must start with 0x ($value)" }
+    fun validate() {
+        check(value.startsWith("0x")) { "Account Address must start with 0x ($value)" }
+        check(value.length == 42) { "Account Address must be 42 chars long" }
     }
 }

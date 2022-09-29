@@ -94,6 +94,7 @@ data class TransactionData(
 
     @Serializable
     data class Information(
+        val email: String? = null,
         val idCard: StringMap? = null, // The transaction doesn't need to contain an entire id card just the changed parts
         val driverLicense: StringMap? = null, // Same as above
         val medicalCard: StringMap? = null,

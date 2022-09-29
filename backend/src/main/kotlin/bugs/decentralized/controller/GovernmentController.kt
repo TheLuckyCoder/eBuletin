@@ -8,12 +8,13 @@ import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.utils.InvalidTransactionException
 import bugs.decentralized.utils.LoggerExtensions
-import bugs.decentralized.utils.TransactionValidator
+import bugs.decentralized.utils.ecdsa.Sign
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -60,7 +61,14 @@ class GovernmentController @Autowired constructor(
         }
 
         try {
-            TransactionValidator.verifySignature(transaction)
+            if (Sign.checkAddress(
+                    transaction.sender,
+                    Json.encodeToString(transaction.data),
+                    transaction.signature
+                ) == null
+            ) {
+                throw InvalidTransactionException("Transaction's senders address and signature don't match")
+            }
         } catch (e: SignatureException) {
             log.error("Transaction has an invalid signature")
             return@coroutineScope ResponseEntity.badRequest()

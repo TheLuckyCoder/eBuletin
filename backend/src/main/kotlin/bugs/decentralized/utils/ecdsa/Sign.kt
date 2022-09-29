@@ -1,6 +1,9 @@
 package bugs.decentralized.utils.ecdsa
 
+import bugs.decentralized.model.AccountAddress
+import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.utils.SHA
+import org.bouncycastle.asn1.x509.ObjectDigestInfo.publicKey
 import org.bouncycastle.asn1.x9.X9ECParameters
 import org.bouncycastle.asn1.x9.X9IntegerConverter
 import org.bouncycastle.crypto.digests.SHA256Digest
@@ -16,6 +19,8 @@ import org.bouncycastle.math.ec.ECAlgorithms
 import org.bouncycastle.math.ec.ECPoint
 import org.bouncycastle.math.ec.FixedPointCombMultiplier
 import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve
+import org.bouncycastle.util.encoders.Hex
+import org.springframework.http.ResponseEntity
 import java.math.BigInteger
 import java.security.KeyPair
 import java.security.Security
@@ -109,6 +114,16 @@ object Sign {
         CURVE_PARAMS.h
     )
     val HALF_CURVE_ORDER: BigInteger = CURVE_PARAMS.n.shiftRight(1)
+
+    @Throws(SignatureException::class)
+    fun checkAddress(accountAddress: AccountAddress, message: String, signatureData: SignatureData): PublicAccountKey? {
+        val publicAccountKey = signedMessageToKey(message, signatureData)
+        val receiverPublicAccountKey = PublicAccountKey(Hex.toHexString(publicAccountKey.toByteArray()))
+        if (receiverPublicAccountKey.toAddress().value.equals(accountAddress.value, true)) {
+            return null
+        }
+        return receiverPublicAccountKey
+    }
 
     @Throws(SignatureException::class)
     fun signedMessageToKey(message: String, signatureData: SignatureData): BigInteger {
