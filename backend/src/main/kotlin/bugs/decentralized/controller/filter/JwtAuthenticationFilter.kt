@@ -20,8 +20,6 @@ class JwtAuthenticationFilter @Autowired constructor(
     private val jwtTokenUtil: JwtTokenUtil
 ) : OncePerRequestFilter() {
 
-
-
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -32,36 +30,44 @@ class JwtAuthenticationFilter @Autowired constructor(
             filterChain.doFilter(request, response)
             return
         }
+
         val header = request.getHeader(HEADER_STRING)
         var accountAddress: AccountAddress? = null
         var authToken: String? = null
+        var role: String? = null
+
         if (header != null && header.startsWith(TOKEN_PREFIX)) {
             authToken = header.replace(TOKEN_PREFIX, "")
+
             try {
                 accountAddress = jwtTokenUtil.getAddressFromToken(authToken)
+                role = jwtTokenUtil.getAuthorityRoleFromToken(authToken)
             } catch (e: IllegalArgumentException) {
-                logger.error("an error occured during getting username from token", e)
+                logger.error("An error occurred during getting address and role from token", e)
             } catch (e: ExpiredJwtException) {
-                logger.warn("the token is expired and not valid anymore", e)
+                logger.warn("The token is expired and not valid anymore", e)
             } catch (e: SignatureException) {
-                logger.error("Authentication Failed. Username or Password not valid.")
+                logger.error("Authentication Failed")
             }
         } else {
             logger.warn("couldn't find bearer string, will ignore the header")
         }
 
-        if (authToken != null && accountAddress != null && SecurityContextHolder.getContext().authentication == null) {
+        if (authToken != null && accountAddress != null
+            && SecurityContextHolder.getContext().authentication == null) {
             if (jwtTokenUtil.validateToken(authToken, accountAddress)) {
                 val authentication = UsernamePasswordAuthenticationToken(
                     null,
                     null,
-                    listOf(SimpleGrantedAuthority("ROLE_ADMIN"))
+                    listOf(SimpleGrantedAuthority(role))
                 )
-                authentication.setDetails(WebAuthenticationDetailsSource().buildDetails(request))
+
+                authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                 logger.info("authenticated user $accountAddress, setting security context")
                 SecurityContextHolder.getContext().authentication = authentication
             }
         }
+
         filterChain.doFilter(request, response)
     }
 

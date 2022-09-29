@@ -16,9 +16,14 @@ class JwtTokenUtil : Serializable {
     fun getAddressFromToken(token: String): AccountAddress {
         return AccountAddress(getClaimFromToken(token, Claims::getSubject))
     }
-
     fun getExpirationDateFromToken(token: String): Date {
         return getClaimFromToken<Date>(token, Claims::getExpiration)
+    }
+
+    fun getAuthorityRoleFromToken(token: String): String {
+        return getClaimFromToken(token) {
+            this["authority"] as String
+        }
     }
 
     fun <T> getClaimFromToken(token: String, claimsResolver: Claims.() -> T): T {
@@ -38,13 +43,13 @@ class JwtTokenUtil : Serializable {
         return expiration.before(Date())
     }
 
-    fun generateToken(accountAddress: AccountAddress): String {
-        return doGenerateToken(accountAddress.value)
+    fun generateToken(accountAddress: AccountAddress, role: String): String {
+        return doGenerateToken(accountAddress.value, role)
     }
 
-    private fun doGenerateToken(subject: String): String {
+    private fun doGenerateToken(subject: String, role: String): String {
         val claims: Claims = Jwts.claims().setSubject(subject)
-        claims["scopes"] = listOf(SimpleGrantedAuthority("ROLE_ADMIN"))
+        claims["authority"] = listOf(SimpleGrantedAuthority(role))
         return Jwts.builder()
             .setClaims(claims)
             .setIssuer(BlockchainApplication.NODE.address)
@@ -56,7 +61,9 @@ class JwtTokenUtil : Serializable {
 
     fun validateToken(token: String, accountAddress: AccountAddress): Boolean {
         val username = getAddressFromToken(token)
-        if (isTokenExpired(token)) return false
+        if (isTokenExpired(token))
+            return false
+
         return try {
             check(username == accountAddress)
             accountAddress.validate()

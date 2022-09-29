@@ -6,6 +6,8 @@ import java.math.BigInteger
 
 class SimpleKeyPair(private val private: ByteArray, private val public: ByteArray) {
 
+    constructor(private: String, public: String) : this(Hex.decode(private), Hex.decode(public))
+
     val privateBinary: ByteArray
         get() = private
 

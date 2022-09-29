@@ -2,11 +2,14 @@ package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.controller.service.NodesService
+import bugs.decentralized.model.Roles
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
+import bugs.decentralized.repository.getRoleOf
+import bugs.decentralized.repository.getTransactionsCountBy
 import bugs.decentralized.utils.InvalidTransactionException
 import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.Sign
@@ -21,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.security.SignatureException
 
@@ -29,7 +31,6 @@ import java.security.SignatureException
  * Used to communicate between a node and a local special government application
  */
 @RestController
-@RequestMapping("/government")
 class GovernmentController @Autowired constructor(
     private val nodesService: NodesService,
     private val blockRepository: BlockRepository,
@@ -42,6 +43,10 @@ class GovernmentController @Autowired constructor(
     @PutMapping("/submit_transaction")
     suspend fun submitTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> = coroutineScope {
         log.info("Received new transaction")
+
+        val nonceOfSender = blockRepository.getTransactionsCountBy(transaction.sender)
+        val roleOfSender = blockRepository.getRoleOf(transaction.sender)
+
         val hash = transaction.hash
 
         if (transactionsRepository.getTransaction().any { it.hash == hash }) {
@@ -79,35 +84,59 @@ class GovernmentController @Autowired constructor(
             return@coroutineScope ResponseEntity.badRequest().body(e.message)
         }
 
-        val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
-            block.transactions.any { it.receiver == transaction.receiver }
-        }
+        when (roleOfSender)
+        {
+            Roles.ADMIN -> {
+                // NOTHING
+            }
+            Roles.CITIZEN -> {
+                return@coroutineScope ResponseEntity.status(401)
+                    .body("Sender doesn't have the necessary role ($roleOfSender)")
+            }
+            Roles.GOVERNMENT -> {
+                val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
+                    block.transactions.any { it.receiver == transaction.receiver }
+                }
 
-        if (!isNotTheFirstTransactionWithThisReceiver) {
-            // The first transaction should always contain all the id's information
-            try {
-                IdCard.fromMap(transaction.data.information!!.idCard!!)
-                // We don't need the value, just the exception if the value doesn't exist :)
-            } catch (e: Exception) {
-                log.error("It's the first transaction of this account, but the IdCard is not complete", e)
-                return@coroutineScope ResponseEntity.badRequest()
-                    .body("It's the first transaction of this account, but the IdCard is not complete")
+                if (!isNotTheFirstTransactionWithThisReceiver) {
+                    // The first transaction should always contain all the id's information
+                    try {
+                        IdCard.fromMap(transaction.data.information!!.idCard!!)
+                        // We don't need the value, just the exception if the value doesn't exist :)
+                    } catch (e: Exception) {
+                        log.error("It's the first transaction of this account, but the IdCard is not complete", e)
+                        return@coroutineScope ResponseEntity.badRequest()
+                            .body("It's the first transaction of this account, but the IdCard is not complete")
+                    }
+                }
+
+                transaction.data.information?.idCard?.forEach { (key, value) ->
+                    when (key) {
+                        IdCard::cnp.name -> check(value.length == 13)
+                        IdCard::lastName.name -> check(value.length >= 3)
+                        IdCard::firstName.name -> check(value.length >= 3)
+                        IdCard::address.name -> check(value.length >= 5)
+                        IdCard::birthLocation.name -> check(value.length >= 3)
+                        IdCard::sex.name -> check(value == "M" || value == "F")
+                        IdCard::issuedBy.name -> check(value.length >= 5)
+                        IdCard::series.name -> check(value.length == 2)
+                        IdCard::seriesNumber.name -> check(value.length == 6)
+                        IdCard::validity.name -> Json.decodeFromString<LocalDate>(value)
+                    }
+                }
+            }
+            else -> {
+                if (nonceOfSender != 0UL) {
+                    return@coroutineScope ResponseEntity.badRequest()
+                        .body("This sender has alrady sumbit a tranaction")
+                }
+
             }
         }
 
-        transaction.data.information?.idCard?.forEach { (key, value) ->
-            when (key) {
-                IdCard::cnp.name -> check(value.length == 13)
-                IdCard::lastName.name -> check(value.length >= 3)
-                IdCard::firstName.name -> check(value.length >= 3)
-                IdCard::address.name -> check(value.length >= 5)
-                IdCard::birthLocation.name -> check(value.length >= 3)
-                IdCard::sex.name -> check(value == "M" || value == "F")
-                IdCard::issuedBy.name -> check(value.length >= 5)
-                IdCard::series.name -> check(value.length == 2)
-                IdCard::seriesNumber.name -> check(value.length == 6)
-                IdCard::validity.name -> Json.decodeFromString<LocalDate>(value)
-            }
+        if(nonceOfSender != transaction.nonce.toULong()){
+            return@coroutineScope ResponseEntity.badRequest()
+                .body("Nonce doesn't match")
         }
 
         val nodes = nodesRepository.findAll()

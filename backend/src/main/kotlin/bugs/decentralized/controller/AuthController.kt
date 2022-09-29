@@ -5,6 +5,8 @@ import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.EmailCodeRepository
 import bugs.decentralized.repository.getInformationAtAddress
+import bugs.decentralized.repository.getRoleOf
+import bugs.decentralized.utils.JwtTokenUtil
 import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.Sign
 import bugs.decentralized.utils.ecdsa.SignatureData
@@ -17,13 +19,13 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class AuthController @Autowired constructor(
+    private val jwtTokenUtil: JwtTokenUtil,
     private val blockRepository: BlockRepository,
     private val emailSenderService: EmailSenderService,
 ) {
 
     private val emailCodeRepository = EmailCodeRepository
     private val log = LoggerExtensions.getLogger<CitizenController>()
-
 
     @Serializable
     class SignedAddress(
@@ -54,7 +56,7 @@ class AuthController @Autowired constructor(
 
         val secretCode = emailCodeRepository.generateCodeForEmail(signedAddress.address, lastEmail!!)
 
-        log.info("Secret Code: $secretCode")
+        log.info("Secret Code for ${lastEmail}: $secretCode")
 
         emailSenderService.sendMail(lastEmail!!, "Register to government", secretCode.toString())
 
@@ -62,15 +64,20 @@ class AuthController @Autowired constructor(
     }
 
     @PostMapping("/loginWithCode")
-    fun loginWithCode(@RequestBody signedAddress: SignedAddressWithCode): ResponseEntity<Void> {
+    fun loginWithCode(@RequestBody signedAddress: SignedAddressWithCode): ResponseEntity<String> {
         Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
             ?: return ResponseEntity.status(401).build()
 
         val emailCode = emailCodeRepository.getExistingCodeForAccount(signedAddress.address)
         if (signedAddress.code != emailCode?.secretCode) {
-            return ResponseEntity.status(401).build()
+            return ResponseEntity.status(401).body("Invalid Email code")
         }
 
-        return ResponseEntity.ok().build()
+        val role = blockRepository.getRoleOf(signedAddress.address)
+            ?: return ResponseEntity.status(401).body("No role found, cannot generate token")
+
+        return ResponseEntity.ok(
+            jwtTokenUtil.generateToken(signedAddress.address, role)
+        )
     }
 }

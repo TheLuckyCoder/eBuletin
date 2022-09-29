@@ -4,6 +4,7 @@ import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.controller.service.NodesService
 import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.PublicAccountKey
+import bugs.decentralized.model.Roles
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.TransactionData
 import bugs.decentralized.model.information.DriverLicense
@@ -23,6 +24,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -39,51 +42,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/citizen")
 class CitizenController @Autowired constructor(
     private val blockRepository: BlockRepository,
-    private val nodesRepository : NodesRepository,
-    private val nodesService: NodesService,
 ) {
-
-    private val transactionPool = TransactionsRepository
-    private val log = LoggerExtensions.getLogger<CitizenController>()
-
-    @Serializable
-    class SignedAddressWithEmail(
-        val address: AccountAddress,
-        val signedAddress: SignatureData,
-        val email: String
-    )
-
-    @OptIn(DelicateCoroutinesApi::class)
-    @PostMapping("/register")
-    fun register(@RequestBody signedAddress: SignedAddressWithEmail): ResponseEntity<Void> {
-        Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
-            ?: return ResponseEntity.status(401).build()
-
-        val nodeAddress = AccountAddress(BlockchainApplication.NODE.address)
-        val transaction = Transaction.create(
-            sender = nodeAddress,
-            receiver = signedAddress.address,
-            data = TransactionData(
-                information = TransactionData.Information(email = signedAddress.email)
-            ),
-            keyPair = BlockchainApplication.KEYS,
-            nonce = blockRepository.getTransactionsCountBy(nodeAddress).toULong(),
-        )
-
-        transactionPool.transactionsPool.add(transaction)
-
-        val nodes = nodesRepository.findAll()
-        nodes.asSequence()
-            .filter { it != BlockchainApplication.NODE }
-            .forEach { node ->
-                GlobalScope.launch(Dispatchers.IO) {
-                    log.info("Sending transaction to $node")
-                    nodesService.sendTransaction(node.url, transaction)
-                }
-            }
-
-        return ResponseEntity.ok().build()
-    }
 
     @GetMapping("/nonce/{publicKey}")
     fun nonce(@PathVariable publicKey: PublicAccountKey): String {

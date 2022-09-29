@@ -11,6 +11,8 @@ import kotlinx.datetime.LocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.stereotype.Service
+import org.springframework.web.client.getForEntity
+import org.springframework.web.client.getForObject
 import org.springframework.web.client.postForObject
 import java.net.URI
 import java.time.Duration
@@ -33,9 +35,13 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
         }
     }
 
+    fun getBlocks(nodeUrl: String): List<Block> {
+        return restTemplate.getForObject("${nodeUrl}/node/blocks")
+    }
+
     fun sendAllNodes(nodeUrl: String, allNodes: List<Node>) {
         try {
-            val uri = URI.create("${nodeUrl}/nodes/${BlockchainApplication.NODE.address}")
+            val uri = URI.create("${nodeUrl}/node/nodes/${BlockchainApplication.NODE.address}")
             restTemplate.put(uri, allNodes)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -44,7 +50,7 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
 
     fun submitTransaction(nodeUrl: String, transaction: Transaction): Boolean {
         return try {
-            restTemplate.put("$nodeUrl/government/submit_transaction", transaction)
+            restTemplate.put("$nodeUrl/node/submit_transaction", transaction)
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -54,7 +60,7 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
 
     fun sendTransaction(nodeUrl: String, transaction: Transaction): Boolean {
         return try {
-            restTemplate.put("$nodeUrl/transaction", transaction)
+            restTemplate.put("$nodeUrl/node/transaction", transaction)
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -64,7 +70,7 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
 
     fun sendBlock(nodeUrl: String, block: Block): Boolean {
         return try {
-            restTemplate.put("$nodeUrl/block", block)
+            restTemplate.put("$nodeUrl/node/block", block)
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -80,7 +86,6 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
             PublicAccountKey("042b5e6991a99b37d8cbe752e53a13190615487834d7365045ed2acf5b637ea94940a326647d51709e8d0e71079393d2cc5815d02f48ff184271e6fa3897d3758c").toAddress()
 
         val transaction = Transaction.create(
-            BlockchainApplication.KEYS.publicAccount.toAddress(),
             address,
             data = TransactionData(
                 information = TransactionData.Information(

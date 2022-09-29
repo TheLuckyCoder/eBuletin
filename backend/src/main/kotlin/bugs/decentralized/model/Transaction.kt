@@ -54,7 +54,6 @@ data class Transaction(
         }
 
         fun create(
-            sender: AccountAddress,
             receiver: AccountAddress,
             data: TransactionData,
             keyPair: SimpleKeyPair,
@@ -62,6 +61,7 @@ data class Transaction(
         ): Transaction {
             val signKeys = Sign.ECKeyPair.from(keyPair)
             val signature = Sign.sign(json.encodeToString(data), signKeys)
+            val sender = keyPair.publicAccount.toAddress()
 
             return Transaction(
                 _sender = sender.value,
@@ -89,7 +89,7 @@ data class Transaction(
 @Serializable
 data class TransactionData(
     val information: Information? = null,
-    val vote: String? = null,
+//    val vote: String? = null,
 ) {
 
     @Serializable
@@ -99,5 +99,13 @@ data class TransactionData(
         val driverLicense: StringMap? = null, // Same as above
         val medicalCard: StringMap? = null,
         val criminalRecord: StringMap? = null,
+        val role: String? = null,
     )
+}
+
+object Roles {
+    const val ADMIN = "admin"
+    const val NODE = "node"
+    const val GOVERNMENT = "government"
+    const val CITIZEN = "citizen"
 }

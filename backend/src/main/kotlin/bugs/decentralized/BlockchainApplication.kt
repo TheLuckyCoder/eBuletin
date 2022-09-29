@@ -1,11 +1,16 @@
 package bugs.decentralized
 
 import bugs.decentralized.blockchain.Blockchain
+import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
+import bugs.decentralized.model.Roles
+import bugs.decentralized.model.Transaction
+import bugs.decentralized.model.TransactionData
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.utils.ecdsa.ECIES
+import bugs.decentralized.utils.ecdsa.SignatureData
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -24,7 +29,25 @@ class BlockchainApplication {
     companion object {
         val DOTENV = dotenv()
 
-        val GENESIS_BLOCK = Block(0L, 0L, emptyList(), "GENESIS", "0x0")
+        val ADMIN_ADDRESS = AccountAddress("0x1ad40f5934e44a710c3f9c8f8c69dfd0a94efd4c")
+        val GENESIS_BLOCK = Block(
+            0L, 0L,
+            listOf(
+                Transaction(
+                    "efe77d75e7914b540838a45e98196aea8e81d9c9248c5b6fc7c03c56b22709e3",
+                    ADMIN_ADDRESS.value,
+                    ADMIN_ADDRESS.value,
+                    TransactionData(TransactionData.Information(role = Roles.ADMIN)),
+                    SignatureData(
+                        byteArrayOf(28),
+                        byteArrayOf(103, 16, 123, -88, 28, -51, -82, 4, -115, 126, -126, -46, -47, -32, -42, -36, -16, 0, -24, -21, -124, 104, -26, -90, 118, -117, 12, 69, -89, -33, -1, -56),
+                        byteArrayOf(43, 42, -34, 9, 83, -42, 81, 119, -35, 16, 104, 62, 80, -38, -94, -17, -10, 8, 111, 98, 3, -8, -67, 1, 7, -11, 120, 87, 28, 117, 57, 30)
+                    ),
+                    0L
+                )
+            ),
+            "GENESIS", "0x0"
+        )
 
         val KEYS = generateKeys() // Should be loaded from a file
 
@@ -76,6 +99,18 @@ fun main(args: Array<String>) {
             blockchain.miningSession(BlockchainApplication.NODE)
         }
     }
+
+    /*val keyPair = SimpleKeyPair(
+        "1bd963d71f8605b8fa33d3b1861e650d4525c7f51bd38b1240348ab50cfc13d0",
+        "042b5e6991a99b37d8cbe752e53a13190615487834d7365045ed2acf5b637ea94940a326647d51709e8d0e71079393d2cc5815d02f48ff184271e6fa3897d3758c"
+    )
+
+    val t = Transaction.create(
+        keyPair.publicAccount.toAddress(),
+        TransactionData(TransactionData.Information(role = Roles.ADMIN)),
+        keyPair,
+        0UL
+    )*/
 
     /*GlobalScope.launch {
         launch {

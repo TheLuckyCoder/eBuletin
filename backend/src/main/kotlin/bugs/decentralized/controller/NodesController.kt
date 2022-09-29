@@ -5,10 +5,12 @@ import bugs.decentralized.blockchain.Poet
 import bugs.decentralized.controller.service.NodesService
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
+import bugs.decentralized.model.Roles
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
+import bugs.decentralized.repository.getRoleOf
 import bugs.decentralized.utils.InvalidTransactionException
 import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.TransactionValidator
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.security.SignatureException
 
@@ -31,6 +34,7 @@ import java.security.SignatureException
  * Used to communicate with the other validators in the network
  */
 @RestController
+@RequestMapping("/node")
 class NodesController @Autowired constructor(
     private val nodesService: NodesService,
     private val blockRepository: BlockRepository,
@@ -92,6 +96,13 @@ class NodesController @Autowired constructor(
     @PutMapping("/transaction")
     fun newTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> {
         log.info("Received new transaction")
+
+        val roleOfSender = blockRepository.getRoleOf(transaction.sender)
+        if (roleOfSender != Roles.GOVERNMENT) {
+            return ResponseEntity.status(401)
+                .body("Sender doesn't have the necessary role ($roleOfSender)")
+        }
+
         val hash = transaction.hash
 
         if (transactionsRepository.getTransaction().any { it.hash == hash }) {
