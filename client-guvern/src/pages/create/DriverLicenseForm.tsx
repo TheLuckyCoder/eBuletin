@@ -1,10 +1,17 @@
-import {Box, Button, Card, CardContent, Grid, Typography} from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  Typography,
+} from "@mui/material";
 import React from "react";
-import {useForm} from "react-hook-form";
-import {ControlledTextField} from "../../components";
+import { useForm } from "react-hook-form";
+import { ControlledTextField } from "../../components";
 import * as Yup from "yup";
-import {yupResolver} from "@hookform/resolvers/yup";
-import {IDriverLicense} from "../../types/transaction";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { IDriverLicense } from "../../types/transaction";
 
 const formSchema = Yup.object({
   blockchainAddress: Yup.string().required(),
@@ -25,18 +32,18 @@ const formConfig = {
 };
 
 interface FormDriverLicense extends IDriverLicense {
-  blockchainAddress: string
+  blockchainAddress: string;
 }
 
 export const DriverLicenseForm = () => {
   const {
     handleSubmit,
     control,
-    formState: {errors},
+    formState: { errors },
   } = useForm<FormDriverLicense>(formConfig);
 
   const handleRegister = (data: FormDriverLicense) => {
-    // register(data);
+    console.log(data);
   };
 
   return (
@@ -62,52 +69,94 @@ export const DriverLicenseForm = () => {
               alignItems: "center",
             }}
           >
-
             <Typography variant="h4" textAlign="center">
               Creează permis de conducere
             </Typography>
 
             <Grid container spacing={1}>
-
               <Grid item xs={12}>
-                <ControlledTextField name="blockchainAddress" label="Adresa pe Blockchain" control={control}/>
-              </Grid>
-              <Grid item xs={12}>
-                <ControlledTextField name="lastName" label="Nume" control={control}/>
-              </Grid>
-              <Grid item xs={12}>
-                <ControlledTextField name="firstName" label="Prenume" control={control}/>
+                <ControlledTextField
+                  name="blockchainAddress"
+                  label="Adresa pe Blockchain"
+                  control={control}
+                />
               </Grid>
               <Grid item xs={12}>
-                <ControlledTextField name="placeAndDateOfBirth" label="Data și locul nașterii" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="issueDate" label="Data eliberării" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="expirationDate" label="Data expirării" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="issuedBy" label="Eliberat de" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="licenseNumber" label="Numărul permisului" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="validFrom" label="Valabilitate" control={control}/>
-              </Grid>
-              <Grid item xs={6}>
-                <ControlledTextField name="validUntil" label="Emisă de" control={control}/>
+                <ControlledTextField
+                  name="lastName"
+                  label="Nume"
+                  control={control}
+                />
               </Grid>
               <Grid item xs={12}>
-                <ControlledTextField name="categories" label="Coduri" control={control}/>
+                <ControlledTextField
+                  name="firstName"
+                  label="Prenume"
+                  control={control}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <ControlledTextField
+                  name="placeAndDateOfBirth"
+                  label="Data și locul nașterii"
+                  control={control}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <ControlledTextField
+                  name="issueDate"
+                  label="Data eliberării"
+                  control={control}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <ControlledTextField
+                  name="expirationDate"
+                  label="Data expirării"
+                  control={control}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <ControlledTextField
+                  name="issuedBy"
+                  label="Eliberat de"
+                  control={control}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <ControlledTextField
+                  name="licenseNumber"
+                  label="Numărul permisului"
+                  control={control}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <ControlledTextField
+                  name="validFrom"
+                  label="Valabilitate"
+                  control={control}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <ControlledTextField
+                  name="validUntil"
+                  label="Emisă de"
+                  control={control}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <ControlledTextField
+                  name="categories"
+                  label="Coduri"
+                  control={control}
+                />
               </Grid>
             </Grid>
 
             <Button
               variant="contained"
               color="primary"
-              sx={{maxWidth: "200px"}}
+              sx={{ maxWidth: "200px" }}
               type="submit"
             >
               Creează
@@ -116,5 +165,5 @@ export const DriverLicenseForm = () => {
         </form>
       </Card>
     </Box>
-  )
+  );
 };

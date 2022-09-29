@@ -1,10 +1,24 @@
 import { useRouter } from "next/router";
+import * as secp from "@noble/secp256k1";
 import React, { useEffect, useState } from "react";
 import { AuthContext } from "../authContext";
-import { getErrorMessage } from "../helpers/general";
+import { getAddressFromPublicKey, getErrorMessage } from "../helpers/general";
 import CryptoJS from "crypto-js";
 import { PrivateKey } from "eciesjs";
 import { deleteKeys } from "../helpers/auth";
+import {
+  generateEcdsaKeyPair,
+  generatePublicKeyFromPrivateKey,
+  generateSeed,
+  getHexPrivateKey,
+  getHexPublicKey,
+} from "../helpers/secretPassphrase";
+import { createTransaction, signMessage } from "../helpers/transaction";
+import {
+  loginRequest,
+  loginWithCode,
+  registerRequest,
+} from "../service/documentService";
 
 export const useAuth = () => {
   const { isAuthenticated, setIsAuthenticated, setPrivateKey, privateKey } =
@@ -14,6 +28,10 @@ export const useAuth = () => {
   const router = useRouter();
   const [encryptedPrivateKey, setEncryptedPrivateKey] = useState(false);
   const [initializing, setInitializing] = useState(true);
+  const [dialog2FactorOpen, setDialog2FactorOpen] = useState(false);
+  const [dialogData, setDialogData] = useState(null);
+  const [loading2Fa, setLoading2Fa] = useState(false);
+  const [error2Fa, setError2Fa] = useState(null);
 
   const encryptPrivateKey = (privateKey, password) => {
     const obj = {
@@ -24,10 +42,6 @@ export const useAuth = () => {
       JSON.stringify(obj),
       password
     ).toString();
-    console.log(
-      "equal?: ",
-      encryptedPrivateKey === decryptPrivateKey(encryptedPrivateKey, password)
-    );
     return encryptedPrivateKey;
   };
 
@@ -42,14 +56,12 @@ export const useAuth = () => {
     }
   };
 
-  const generateKeyPair = async (password) => {
-    const privateKey = new PrivateKey();
-    const publicKey = privateKey.publicKey;
+  const generateKeyPair = async (seed) => {
+    const keypair = generateEcdsaKeyPair(seed);
+    const privateKey = getHexPrivateKey(keypair);
+    const publicKey = getHexPublicKey(keypair);
 
-    const pubKeyStr = publicKey.toHex();
-    const privateKeyStr = privateKey.toHex();
-
-    return { publicKey: pubKeyStr, privateKey: privateKeyStr };
+    return { publicKey: publicKey, privateKey: privateKey };
   };
 
   const downloadPrivateKey = (privateKey) => {
@@ -62,22 +74,83 @@ export const useAuth = () => {
   };
 
   const onImport = async (data) => {
-    setIsLoading(true);
-    setError(null);
     try {
       const { privateKey, password } = data;
       const encryptedPrivateKey = encryptPrivateKey(privateKey, password);
-      setEncryptedPrivateKey(encryptedPrivateKey);
-      setPrivateKey(privateKey);
-      window.localStorage.setItem("encryptedPrivateKey", encryptedPrivateKey);
-      window.sessionStorage.setItem("privateKey", privateKey);
-      setIsAuthenticated(true);
-      router.push("/");
+      return { privateKey, encryptedPrivateKey };
     } catch (e) {
       console.error(e);
       setError(e.message || "Something went wrong");
+      throw error;
     }
-    setIsLoading(false);
+  };
+
+  const onGeneralLogin = async (data) => {
+    setIsLoading(true);
+    try {
+      let prvKey, encPrv;
+      if (!!encryptedPrivateKey) {
+        const { privateKey, encryptedPrivateKey } = await login(data.password);
+        prvKey = privateKey;
+        encPrv = encryptedPrivateKey;
+      } else {
+        const { privateKey, encryptedPrivateKey } = await onImport(data);
+        prvKey = privateKey;
+        encPrv = encryptedPrivateKey;
+      }
+      console.log("privateKey", prvKey);
+      const publicKey = await generatePublicKeyFromPrivateKey(prvKey);
+      console.log("publicKey", publicKey);
+      const address = await getAddressFromPublicKey(publicKey);
+      console.log("address", address);
+      const signature = await signMessage(prvKey, address);
+      await loginRequest(address, signature);
+      setDialog2FactorOpen(true);
+      setDialogData({ address, signature, encPrv, prvKey });
+      setIsLoading(false);
+      return { address, signature, encPrv };
+    } catch (e) {
+      console.error(e);
+      setIsLoading(false);
+      setError(e.message || "Something went wrong");
+      throw error;
+    }
+  };
+
+  const login2Factor = async (code) => {
+    try {
+      setLoading2Fa(true);
+      setError2Fa(null);
+      if (!dialogData.address) {
+        throw new Error("Address not found");
+      }
+      if (!dialogData.signature) {
+        throw new Error("Signature not found");
+      }
+      if (!dialogData.prvKey) {
+        throw new Error("Private key not found");
+      }
+      const { data: bearerToken } = await loginWithCode(
+        dialogData.address,
+        dialogData.signature,
+        code
+      );
+      window.localStorage.setItem("bearerToken", bearerToken);
+      window.sessionStorage.setItem("privateKey", dialogData.prvKey);
+      if (dialogData.encPrv) {
+        window.localStorage.setItem("encryptedPrivateKey", dialogData.encPrv);
+      }
+      setDialog2FactorOpen(false);
+      setDialogData(null);
+      setIsAuthenticated(true);
+      setLoading2Fa(false);
+      router.push("/");
+    } catch (e) {
+      setLoading2Fa(false);
+      console.error(e);
+      setError2Fa(e.message || "Something went wrong");
+      throw error;
+    }
   };
 
   const removeKeys = () => {
@@ -95,30 +168,42 @@ export const useAuth = () => {
       setPrivateKey(privateKey);
       window.sessionStorage.setItem("privateKey", privateKey);
       setIsAuthenticated(true);
-      router.push("/");
+      setIsLoading(false);
+      return { privateKey, encryptedPrivateKey: null };
     } catch (error) {
       setError("Invalid Password");
+      setIsLoading(false);
+      throw error;
     }
-    setIsLoading(false);
   };
 
   const register = async (data) => {
     setIsLoading(true);
+    setError(null);
     try {
-      if (data.privateKey !== null) {
-        window.localStorage.setItem(
-          "encryptedPrivateKey",
-          encryptPrivateKey(data.privateKey, data.password)
-        );
-        window.sessionStorage.setItem("privateKey", data.privateKey);
-      }
-      setIsAuthenticated(true);
-      downloadPrivateKey(data.privateKey);
-      router.push("/");
-    } catch (error) {
-      setError(getErrorMessage(error));
+      const { email, mnemonicPhrase } = data;
+      const seed = generateSeed(mnemonicPhrase);
+      const { publicKey, privateKey } = await generateKeyPair(seed);
+      const address = await getAddressFromPublicKey(publicKey);
+      const signature = await signMessage(privateKey, address);
+      console.log("privateKey", privateKey);
+      console.log("publicKey", publicKey);
+      console.log("address", address);
+      console.log("signature", signature);
+      const transaction = await createTransaction(privateKey, address, {
+        email,
+        role: "citizen",
+      });
+      console.log(await registerRequest(transaction));
+      downloadPrivateKey(privateKey);
+      setIsLoading(false);
+      return privateKey;
+    } catch (e) {
+      console.error(e);
+      setError(getErrorMessage(e));
+      setIsLoading(false);
+      throw e;
     }
-    setIsLoading(false);
   };
 
   const logout = () => {
@@ -148,5 +233,13 @@ export const useAuth = () => {
     generateKeyPair,
     onImport,
     removeKeys,
+    onGeneralLogin,
+    dialog2FactorOpen,
+    dialogData,
+    setDialog2FactorOpen,
+    login2Factor,
+    error2Fa,
+    loading2Fa,
+    setError2Fa,
   };
 };

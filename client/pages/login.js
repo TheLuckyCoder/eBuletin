@@ -3,6 +3,8 @@ import {
   Button,
   Card,
   CardContent,
+  Dialog,
+  DialogContent,
   Link,
   TextField,
   Typography,
@@ -14,11 +16,44 @@ import { useForm } from "react-hook-form";
 import { ControlledTextField } from "../components/ControlledInputs/ControlledTextField";
 import { deleteKeys } from "../helpers/auth";
 import { useAuth } from "../hooks/useAuth";
+import * as Yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import LoadingButton from "@mui/lab/LoadingButton";
+
+const formSchema = Yup.object({
+  mnemonicPhrase: Yup.string().required("Mnemonic Phrase is required"),
+  email: Yup.string().email("Invalid email").required("Email is required"),
+  password: Yup.string()
+    .required("Password is required")
+    .min(8, "Password must be at least 8 characters"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Passwords must match")
+    .required("Confirm Password is required")
+    .min(8, "Password must be at least 8 characters"),
+}).required();
 
 const Login = () => {
   const router = useRouter();
-  const { error, isLoading, login, encryptedPrivateKey, onImport, removeKeys } =
-    useAuth();
+  const {
+    error,
+    isLoading,
+    onGeneralLogin,
+    encryptedPrivateKey,
+    removeKeys,
+    dialog2FactorOpen,
+    dialogData,
+    setDialog2FactorOpen,
+    error2Fa,
+    loading2Fa,
+    login2Factor,
+    setError2Fa,
+  } = useAuth();
+  const [code, setCode] = React.useState("");
+
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
+  };
+
   const {
     handleSubmit,
     control,
@@ -31,13 +66,12 @@ const Login = () => {
     reValidateMode: "onSubmit",
   });
 
-  const onSubmit = (data) => {
-    console.log("he?");
-    if (!!encryptedPrivateKey) {
-      login(data.password);
-    } else {
-      onImport(data);
-    }
+  const onSubmit = async (data) => {
+    await onGeneralLogin(data);
+  };
+
+  const on2Factor = async () => {
+    await login2Factor(parseInt(code));
   };
 
   return (
@@ -53,6 +87,39 @@ const Login = () => {
         padding: "20px",
       }}
     >
+      <Dialog
+        open={dialog2FactorOpen}
+        onClose={() => {
+          setDialog2FactorOpen(false);
+          setError2Fa(null);
+        }}
+        sx={{
+          "& .MuiDialog-paper": {
+            maxWidth: "600px",
+          },
+        }}
+      >
+        <Box display="flex" gap={2} flexDirection="column" padding={2}>
+          <Typography variant="h4">
+            Completeaza cu codul primit pe email
+          </Typography>
+          <TextField
+            id="outlined-basic"
+            label="Cod 2Factor"
+            onChange={handleCodeChange}
+            variant="outlined"
+            type="number"
+          />
+          <LoadingButton
+            loading={loading2Fa}
+            variant="contained"
+            onClick={on2Factor}
+          >
+            Login
+          </LoadingButton>
+          {error2Fa && <Typography color="error">{error2Fa}</Typography>}
+        </Box>
+      </Dialog>
       <Card elevation={12}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent
@@ -85,16 +152,16 @@ const Login = () => {
               autofill="current-password"
               rules={{ required: true }}
               type="password"
-              
             />
-            <Button
+            <LoadingButton
               variant="contained"
               color="primary"
+              loading={isLoading}
               sx={{ maxWidth: "200px" }}
               type="submit"
             >
               {!encryptedPrivateKey ? "Importa" : "Logheaza-te!"}
-            </Button>
+            </LoadingButton>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <Link
                 component="button"
@@ -104,6 +171,15 @@ const Login = () => {
                 }
               >
                 Inregistreaza-te
+              </Link>
+              <Link
+                component="button"
+                underline="hover"
+                onClick={() =>
+                  router.push("/recovery", null, { shallow: true })
+                }
+              >
+                Recupereaza Cheia
               </Link>
               {encryptedPrivateKey && (
                 <Link component="button" underline="hover" onClick={removeKeys}>

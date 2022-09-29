@@ -5,6 +5,12 @@ export const getErrorMessage = (e) => {
   return e.message || "error";
 };
 
+export const encryptJsonData = (publicKey, data) => {
+  const encrypted = encrypt(publicKey, JSON.stringify(data));
+  return encrypted;
+};
+
+
 export const decryptJsonData = (encryptedData, privateKey) => {
   const encryptedDataArrayBuffer = Buffer.from(encryptedData, "hex");
   const decryptedData = decrypt(privateKey, encryptedDataArrayBuffer);
