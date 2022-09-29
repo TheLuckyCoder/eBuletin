@@ -1,6 +1,7 @@
 package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
+import bugs.decentralized.controller.service.NodesService
 import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Transaction
@@ -9,7 +10,6 @@ import bugs.decentralized.model.information.DriverLicense
 import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.model.information.MedicalCard
 import bugs.decentralized.repository.BlockRepository
-import bugs.decentralized.repository.EmailCodeRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.repository.getInformationAtAddress
@@ -43,15 +43,8 @@ class CitizenController @Autowired constructor(
     private val nodesService: NodesService,
 ) {
 
-    private val emailCodeRepository = EmailCodeRepository
     private val transactionPool = TransactionsRepository
     private val log = LoggerExtensions.getLogger<CitizenController>()
-
-    @Serializable
-    class SignedAddress(
-        val address: AccountAddress,
-        val signedAddress: SignatureData,
-    )
 
     @Serializable
     class SignedAddressWithEmail(
@@ -59,49 +52,6 @@ class CitizenController @Autowired constructor(
         val signedAddress: SignatureData,
         val email: String
     )
-
-    @Serializable
-    class SignedAddressWithCode(
-        val address: AccountAddress,
-        val signedAddress: SignatureData,
-        val code: Int
-    )
-
-    @PostMapping("/login")
-    fun login(@RequestBody signedAddress: SignedAddress): ResponseEntity<String> {
-        Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
-            ?: return ResponseEntity.status(401).build()
-
-        var lastEmail: String? = null
-        blockRepository.getInformationAtAddress(signedAddress.address) { information ->
-            lastEmail = information.email
-        }
-
-        if (lastEmail == null) {
-            return ResponseEntity.badRequest().body("Account not registered")
-        }
-
-        val secretCode = emailCodeRepository.generateCodeForEmail(signedAddress.address, lastEmail!!)
-
-        log.info("Secret Code: $secretCode")
-
-        // TODO Send email
-
-        return ResponseEntity.ok("")
-    }
-
-    @PostMapping("/loginWithCode")
-    fun loginWithCode(@RequestBody signedAddress: SignedAddressWithCode): ResponseEntity<Void> {
-        Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
-            ?: return ResponseEntity.status(401).build()
-
-        val emailCode = emailCodeRepository.getExistingCodeForAccount(signedAddress.address)
-        if (signedAddress.code != emailCode?.secretCode) {
-            return ResponseEntity.status(401).build()
-        }
-
-        return ResponseEntity.ok().build()
-    }
 
     @OptIn(DelicateCoroutinesApi::class)
     @PostMapping("/register")

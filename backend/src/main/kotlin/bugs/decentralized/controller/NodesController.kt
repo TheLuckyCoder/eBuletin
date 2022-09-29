@@ -2,6 +2,7 @@ package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.blockchain.Poet
+import bugs.decentralized.controller.service.NodesService
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.model.Transaction

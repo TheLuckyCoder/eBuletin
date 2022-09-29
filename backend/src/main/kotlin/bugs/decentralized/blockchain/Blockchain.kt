@@ -2,7 +2,7 @@ package bugs.decentralized.blockchain
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.BlockchainApplication.Companion.GENESIS_BLOCK
-import bugs.decentralized.controller.NodesService
+import bugs.decentralized.controller.service.NodesService
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.repository.BlockRepository

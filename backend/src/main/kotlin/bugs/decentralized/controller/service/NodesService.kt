@@ -1,4 +1,4 @@
-package bugs.decentralized.controller
+package bugs.decentralized.controller.service
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.model.Block

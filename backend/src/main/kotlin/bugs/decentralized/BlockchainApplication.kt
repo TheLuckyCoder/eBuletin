@@ -1,28 +1,22 @@
 package bugs.decentralized
 
 import bugs.decentralized.blockchain.Blockchain
-import bugs.decentralized.controller.NodesService
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.utils.ecdsa.ECIES
-import bugs.decentralized.utils.ecdsa.Sign
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 import java.io.File
-import java.math.BigInteger
 
 @EnableMongoRepositories(basePackages = ["bugs.decentralized.repository"])
 @SpringBootApplication
@@ -74,7 +68,7 @@ fun main(args: Array<String>) {
 
     val blockchain: Blockchain = applicationContext.getBean()
 
-    val nodesService: NodesService = applicationContext.getBean()
+//    val nodesService: NodesService = applicationContext.getBean()
 
     GlobalScope.launch(Dispatchers.IO) {
         while (true) {
@@ -83,9 +77,6 @@ fun main(args: Array<String>) {
         }
     }
 
-    val private = BigInteger("1bbaee028b2141c59c92ecaef66015eaabb950e7ed5c56583175c53cfb8cf606", 16)
-    val signatureData = Sign.sign("0xFD29BDCAE955514E3B34E7EE4C06729DB9CC4711", Sign.ECKeyPair.from(private))
-val json = Json.encodeToString(signatureData)
     /*GlobalScope.launch {
         launch {
             delay(500)
@@ -96,5 +87,4 @@ val json = Json.encodeToString(signatureData)
             nodesService.submitTransaction()
         }
     }*/
-    println(json)
 }

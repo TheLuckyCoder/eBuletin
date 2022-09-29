@@ -1,4 +1,4 @@
-package bugs.decentralized.utils.mail
+package bugs.decentralized.controller.service
 
 import bugs.decentralized.BlockchainApplication
 import jakarta.mail.internet.MimeMessage
@@ -11,18 +11,18 @@ import java.util.*
 class EmailSenderService {
 
     val mailSender by lazy {
-        val mailSender = JavaMailSenderImpl()
-        mailSender.host = "smtp.gmail.com"
-        mailSender.port = 587
-
-        mailSender.username = BlockchainApplication.DOTENV.get("SMTP_USERNAME")
-        mailSender.password = BlockchainApplication.DOTENV.get("SMTP_APP_PASSWORD")
+        val mailSender = JavaMailSenderImpl().apply {
+            host = "smtp.gmail.com"
+            port = 587
+            username = BlockchainApplication.DOTENV["SMTP_USERNAME"]
+            password = BlockchainApplication.DOTENV["SMTP_APP_PASSWORD"]
+        }
 
         val props: Properties = mailSender.javaMailProperties
         props["mail.transport.protocol"] = "smtp"
         props["mail.smtp.auth"] = "true"
         props["mail.smtp.starttls.enable"] = "true"
-        props["mail.debug"] = "true"
+        props["mail.debug"] = BlockchainApplication.DOTENV["SMTP_DEBUG"]
         props["mail.smtp.socketFactory.port"] = "465"
         props["mail.smtp.socketFactory.class"] = "javax.net.ssl.SSLSocketFactory"
 

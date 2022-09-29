@@ -1,6 +1,7 @@
 package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
+import bugs.decentralized.controller.service.NodesService
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.information.IdCard
 import bugs.decentralized.repository.BlockRepository
