@@ -5,22 +5,18 @@ import bugs.decentralized.blockchain.Poet
 import bugs.decentralized.controller.service.NodesService
 import bugs.decentralized.model.Block
 import bugs.decentralized.model.Node
-import bugs.decentralized.model.Roles
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
-import bugs.decentralized.repository.getRoleOf
-import bugs.decentralized.repository.*
+import bugs.decentralized.repository.getLastBlock
 import bugs.decentralized.utils.LoggerExtensions
-import bugs.decentralized.utils.ecdsa.Sign
 import bugs.decentralized.utils.SHA
+import bugs.decentralized.utils.ecdsa.Sign
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
@@ -60,7 +56,7 @@ class NodesController @Autowired constructor(
 
     @GetMapping("/block/{blockNumber}")
     fun block(@PathVariable blockNumber: String): Block? {
-        val blockNumberLong = blockNumber.toULong()
+        val blockNumberLong = blockNumber.toLong()
 
         return blockRepository.findByIdOrNull(blockNumberLong)
     }
@@ -68,6 +64,16 @@ class NodesController @Autowired constructor(
     @GetMapping("/lastBlock")
     fun lastBlock(): Block {
         return blockRepository.getLastBlock()
+    }
+
+    @GetMapping("/blocksInRange}")
+    fun blocksInRange(@RequestBody range: LongRange): List<Block> {
+        val result = mutableListOf<Block>()
+
+        for (i in range) {
+            result.add(blockRepository.findById(i).get())
+        }
+        return result
     }
 
     @PutMapping("/block")
@@ -80,10 +86,10 @@ class NodesController @Autowired constructor(
             return
         }
 
-        if (allBlocks.maxOf { it.blockNumber } != (block.blockNumber - 1)) {
-            log.error("invalid block number ${block.blockNumber}")
-            return
-        }
+//        if (allBlocks.maxOf { it.blockNumber } != (block.blockNumber - 1)) {
+//            log.error("invalid block number ${block.blockNumber}")
+//            return
+//        }
 
         if (block.stateHash == SHA.sha256Hex(blocks().last().hash + blocks().last().stateHash)) {
             log.error("invalid stateHash for block ${block.stateHash}")
@@ -95,6 +101,13 @@ class NodesController @Autowired constructor(
         ) {
             log.error("The waited time is invalid ${block.nodeAddress}")
             return
+        }
+        
+        //Current node missing blocks:
+        if (allBlocks.maxOf { it.blockNumber } + 1 < block.blockNumber) {
+            val list: List<Block> =
+                blocksInRange(allBlocks.maxOf { it.blockNumber } + 1 until block.blockNumber)
+            blockRepository.saveAll(list)
         }
 
         synchronized(transactionsRepository.transactionsPool) {

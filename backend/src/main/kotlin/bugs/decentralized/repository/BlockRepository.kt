@@ -5,7 +5,7 @@ import bugs.decentralized.model.Block
 import bugs.decentralized.model.TransactionData
 import org.springframework.data.mongodb.repository.MongoRepository
 
-interface BlockRepository : MongoRepository<Block, ULong>
+interface BlockRepository : MongoRepository<Block, Long>
 
 fun BlockRepository.getRoleOf(address: AccountAddress): String? {
     for (block in findAll()) {

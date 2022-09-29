@@ -13,7 +13,7 @@ import java.net.URI
 import java.time.Duration
 
 @Service
-class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuilder) {
+abstract class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuilder) {
 
     private val restTemplate = restTemplateBuilder
         .setConnectTimeout(Duration.ofSeconds(30))
@@ -68,6 +68,16 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
             restTemplate.put("$nodeUrl/node/block", block)
             true
         } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    fun sendBlockRange(nodeUrl: String, range: List<Block>): Boolean {
+        return try {
+            restTemplate.put("$nodeUrl/node/blocksInRange", range)
+            true
+        }catch (e: Exception){
             e.printStackTrace()
             false
         }

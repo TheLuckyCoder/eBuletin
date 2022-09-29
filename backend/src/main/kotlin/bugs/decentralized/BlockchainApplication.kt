@@ -157,7 +157,6 @@ fun main(args: Array<String>) {
 
     val blockchain: Blockchain = applicationContext.getBean()
     val nodesService: NodesService = applicationContext.getBean()
-    val nodesController: NodesController = applicationContext.getBean()
 
     val nodes = nodesRepository.findAll()
     val blockList = mutableListOf<Block>()
