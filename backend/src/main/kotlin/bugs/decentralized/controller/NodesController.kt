@@ -40,7 +40,7 @@ class NodesController @Autowired constructor(
     private val transactionsRepository = TransactionsRepository
 
     @GetMapping("/ping")
-    fun ping(): String = "OK"
+    fun ping() = "OK"
 
     @PostMapping("/ping")
     fun ping(@RequestBody node: Node): String {
