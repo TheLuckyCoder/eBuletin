@@ -2,6 +2,7 @@ package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.controller.service.NodesService
+import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Roles
 import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.information.IdCard
@@ -23,6 +24,8 @@ import kotlinx.serialization.json.Json
 import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -40,6 +43,13 @@ class GovernmentController @Autowired constructor(
 
     private val log = LoggerExtensions.getLogger<NodesController>()
     private val transactionsRepository = TransactionsRepository
+
+    @GetMapping("/government/nonce/{publicKey}")
+    fun nonce(@PathVariable publicKey: PublicAccountKey): ULong {
+        val address = publicKey.toAddress()
+
+        return blockRepository.getTransactionsCountBy(address)
+    }
 
     @PutMapping("/submit_transaction")
     suspend fun submitTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> = coroutineScope {
@@ -100,7 +110,7 @@ class GovernmentController @Autowired constructor(
             }
 
             Roles.GOVERNMENT -> {
-                val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
+                /*val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
                     block.transactions.any { it.receiver == transaction.receiver }
                 }
 
@@ -114,9 +124,10 @@ class GovernmentController @Autowired constructor(
                         return@coroutineScope ResponseEntity.badRequest()
                             .body("It's the first transaction of this account, but the IdCard is not complete")
                     }
-                }
+                }*/
 
-                transaction.data.information?.idCard?.forEach { (key, value) ->
+                // TODO Re-enable
+                /*transaction.data.information?.idCard?.forEach { (key, value) ->
                     when (key) {
                         IdCard::cnp.name -> check(value.length == 13)
                         IdCard::lastName.name -> check(value.length >= 3)
@@ -129,7 +140,7 @@ class GovernmentController @Autowired constructor(
                         IdCard::seriesNumber.name -> check(value.length == 6)
                         IdCard::validity.name -> Json.decodeFromString<LocalDate>(value)
                     }
-                }
+                }*/
             }
 
             else -> {

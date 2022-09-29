@@ -15,8 +15,7 @@ object EmailCodeRepository {
 
     @Synchronized
     fun getExistingCodeForAccount(accountAddress: AccountAddress): EmailCode? {
-        println(emailCodes)
-        val code = emailCodes.find { it.address == accountAddress }
+        val code = emailCodes.firstOrNull { it.address == accountAddress }
 
         return when {
             code == null -> null

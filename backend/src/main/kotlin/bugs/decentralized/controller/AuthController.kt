@@ -42,6 +42,7 @@ class AuthController @Autowired constructor(
 
     @PostMapping("/login")
     fun login(@RequestBody signedAddress: SignedAddress): ResponseEntity<String> {
+        log.info("User with address ${signedAddress.address} is trying to sign in")
 //        Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
 //            ?: return ResponseEntity.status(401).body("Invalid signature")
 
@@ -65,6 +66,7 @@ class AuthController @Autowired constructor(
 
     @PostMapping("/loginWithCode")
     fun loginWithCode(@RequestBody signedAddress: SignedAddressWithCode): ResponseEntity<String> {
+        log.info("User with address ${signedAddress.address} is trying to sign in with a code")
 //        Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
 //            ?: return ResponseEntity.status(401).body("Invalid signature")
 
