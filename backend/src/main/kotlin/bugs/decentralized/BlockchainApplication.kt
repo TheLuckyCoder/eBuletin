@@ -9,7 +9,11 @@ import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
 import io.github.cdimascio.dotenv.dotenv
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -29,7 +33,6 @@ class BlockchainApplication {
         val NODE = Node(
             KEYS.publicAccount.toAddress().value,
             DOTENV.get("BLOCKCHAIN_SERVER_URL"),
-            DOTENV.get("BLOCKCHAIN_SERVER_ID")
         )
 
         private fun generateKeys(): SimpleKeyPair {
@@ -86,7 +89,4 @@ fun main(args: Array<String>) {
             nodesService.submitTransaction()
         }
     }
-
-//    val senderService = EmailSenderService()
-//    senderService.sendMail("mircea.rautoiu@gmail.com", "Subject", "Content")
 }

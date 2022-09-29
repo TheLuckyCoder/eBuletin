@@ -10,7 +10,6 @@ class Node(
     @Id
     val address: String, // AccountAddress
     val url: String,
-    val id: String
 ) {
 
     override fun toString(): String {
