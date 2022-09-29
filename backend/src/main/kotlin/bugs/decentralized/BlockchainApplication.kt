@@ -28,7 +28,7 @@ import java.math.BigInteger
 @SpringBootApplication
 class BlockchainApplication {
     companion object {
-        private val DOTENV = dotenv()
+        val DOTENV = dotenv()
 
         val GENESIS_BLOCK = Block(0L, 0L, emptyList(), "GENESIS", "0x0")
 

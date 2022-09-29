@@ -1,5 +1,6 @@
 package bugs.decentralized.utils.mail
 
+import bugs.decentralized.BlockchainApplication
 import jakarta.mail.internet.MimeMessage
 import org.springframework.mail.javamail.JavaMailSenderImpl
 import org.springframework.mail.javamail.MimeMessageHelper
@@ -14,8 +15,8 @@ class EmailSenderService {
         mailSender.host = "smtp.gmail.com"
         mailSender.port = 587
 
-        mailSender.username = "test.validator.hack@gmail.com"
-        mailSender.password = "ctymhhujmflrxqfd"//"mailPassword123"
+        mailSender.username = BlockchainApplication.DOTENV.get("SMTP_USERNAME")
+        mailSender.password = BlockchainApplication.DOTENV.get("SMTP_APP_PASSWORD")
 
         val props: Properties = mailSender.javaMailProperties
         props["mail.transport.protocol"] = "smtp"
