@@ -9,12 +9,8 @@ import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.utils.LoggerExtensions
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
+import bugs.decentralized.utils.SHA
+import kotlinx.coroutines.*
 import org.bson.Document
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.mapping.event.AfterSaveCallback
@@ -82,8 +78,12 @@ class Blockchain @Autowired constructor(
                 result
             }
             require(transactions.isNotEmpty()) { "No transactions to mine" }
-            val newBlock = Poet.generateBlock(transactions, lastBlock, currentNode)
+            val newBlock = Poet.generateBlock(
+                transactions, lastBlock, currentNode, SHA.sha256Hex(lastBlock.stateHash + lastBlock.hash)
+            )
             log.info("Mined a new block! $newBlock")
+
+            require(newBlock.stateHash != null) { "General Hash can not be null" }
 
             ensureActive()
             launch(Dispatchers.IO) {

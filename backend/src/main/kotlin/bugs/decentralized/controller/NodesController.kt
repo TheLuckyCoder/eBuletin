@@ -11,8 +11,10 @@ import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.repository.getRoleOf
+import bugs.decentralized.repository.*
 import bugs.decentralized.utils.LoggerExtensions
 import bugs.decentralized.utils.ecdsa.Sign
+import bugs.decentralized.utils.SHA
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
@@ -23,13 +25,7 @@ import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.security.SignatureException
 
 /**
@@ -69,25 +65,44 @@ class NodesController @Autowired constructor(
         return blockRepository.findByIdOrNull(blockNumberLong)
     }
 
+    @GetMapping("/lastBlock")
+    fun lastBlock(): Block {
+        return blockRepository.getLastBlock()
+    }
+
     @PutMapping("/block")
     fun block(@RequestBody block: Block) {
         val allBlocks = blockRepository.findAll()
         val duration = System.currentTimeMillis() - allBlocks.last().timestamp
 
-        if (allBlocks.none { it.blockNumber == block.blockNumber || it.hash == block.hash }
-            && allBlocks.maxOf { it.blockNumber } == (block.blockNumber - 1)
-            && duration > Poet.computeWaitTime(allBlocks.last(), block.nodeAddress)
-        ) {
-
-            synchronized(transactionsRepository.transactionsPool) {
-                transactionsRepository.transactionsPool.removeAll(block.transactions)
-            }
-
-            log.info("Block has been received $block")
-            blockRepository.save(block)
-        } else {
-            log.error("Block already exists or has an invalid waiting time $block")
+        if (!allBlocks.none { it.blockNumber == block.blockNumber || it.hash == block.hash }) {
+            log.error("block already exists $block")
+            return
         }
+
+        if (allBlocks.maxOf { it.blockNumber } != (block.blockNumber - 1)) {
+            log.error("invalid block number ${block.blockNumber}")
+            return
+        }
+
+        if (block.stateHash == SHA.sha256Hex(blocks().last().hash + blocks().last().stateHash)) {
+            log.error("invalid stateHash for block ${block.stateHash}")
+            return
+        }
+
+        if ((duration < Poet.computeWaitTime(allBlocks.last(), block.nodeAddress))
+            && duration + Poet.epsilon.inWholeMilliseconds > Poet.computeWaitTime(allBlocks.last(), block.nodeAddress)
+        ) {
+            log.error("The waited time is invalid ${block.nodeAddress}")
+            return
+        }
+
+        synchronized(transactionsRepository.transactionsPool) {
+            transactionsRepository.transactionsPool.removeAll(block.transactions)
+        }
+
+        log.info("Block has been received $block")
+        blockRepository.save(block)
     }
 
     @GetMapping("/transactions")

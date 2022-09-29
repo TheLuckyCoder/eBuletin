@@ -11,6 +11,7 @@ import kotlin.time.Duration.Companion.seconds
 object Poet {
     private val MIN_TIME = 10.seconds
     private val MAX_TIME = 1.minutes
+    val epsilon = 10.seconds
 
     fun computeWaitTime(lastBlock: Block, nodeAddress: String): Long {
         val hash = SHA.sha256Hex(lastBlock.hash + nodeAddress)
@@ -20,7 +21,7 @@ object Poet {
         return rand.nextLong(MIN_TIME.inWholeMilliseconds, MAX_TIME.inWholeMilliseconds)
     }
 
-    fun generateBlock(transactions: List<Transaction>, lastBlock: Block, currentNode: Node): Block {
+    fun generateBlock(transactions: List<Transaction>, lastBlock: Block, currentNode: Node, generalHash: String): Block {
         /** Create a new block which will "point" to the last block. **/
         return Block(
             lastBlock.blockNumber + 1,
@@ -28,6 +29,7 @@ object Poet {
             transactions,
             lastBlock.hash,
             currentNode.address,
+            generalHash
         )
     }
 }

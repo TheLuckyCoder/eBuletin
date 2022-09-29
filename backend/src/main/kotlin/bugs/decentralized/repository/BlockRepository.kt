@@ -27,6 +27,12 @@ fun BlockRepository.getTransactionsCountBy(address: AccountAddress): ULong {
     }
 }
 
+fun BlockRepository.getLastBlock(): Block {
+    return findAll().maxBy { block ->
+        block.blockNumber
+    }
+}
+
 fun BlockRepository.getInformationAtAddress(
     address: AccountAddress,
     onInformationFound: (TransactionData.Information) -> Unit

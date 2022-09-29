@@ -1,17 +1,12 @@
 package bugs.decentralized.controller.service
 
 import bugs.decentralized.BlockchainApplication
-import bugs.decentralized.model.Block
-import bugs.decentralized.model.Node
-import bugs.decentralized.model.PublicAccountKey
-import bugs.decentralized.model.Transaction
-import bugs.decentralized.model.TransactionData
+import bugs.decentralized.model.*
 import bugs.decentralized.model.information.IdCard
 import kotlinx.datetime.LocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.stereotype.Service
-import org.springframework.web.client.getForEntity
 import org.springframework.web.client.getForObject
 import org.springframework.web.client.postForObject
 import java.net.URI
@@ -76,6 +71,10 @@ class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuild
             e.printStackTrace()
             false
         }
+    }
+
+    fun getLastBlock(nodeUrl: String): Block {
+        return restTemplate.getForObject("${nodeUrl}/node/lastBlock")
     }
 
     /**

@@ -15,6 +15,7 @@ data class Block(
     val transactions: List<Transaction>,
     val parentHash: String,
     val nodeAddress: String, // AccountAddress
+    val stateHash: String,
 ) {
 
     @Transient
