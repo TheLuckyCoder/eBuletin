@@ -119,7 +119,7 @@ fun main(args: Array<String>) {
     )
 
 //    nodesService.submitTransaction("http://localhost:11225", t)
-//    nodesService.submitTransaction("https://server.aaconsl.com/blockchain", t)
+    nodesService.submitTransaction("https://server.aaconsl.com/blockchain", t)
 
 
     /*val t = Transaction.create(

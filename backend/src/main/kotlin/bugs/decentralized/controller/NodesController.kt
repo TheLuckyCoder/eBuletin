@@ -66,12 +66,13 @@ class NodesController @Autowired constructor(
         return blockRepository.getLastBlock()
     }
 
-    @GetMapping("/blocksInRange}")
-    fun blocksInRange(@RequestBody range: LongRange): List<Block> {
+    @GetMapping("/blocks/{from}")
+    fun blocksInRange(@PathVariable from: Long): List<Block> {
+        val blocks = blockRepository.findAll().sortedBy { it.blockNumber }
         val result = mutableListOf<Block>()
 
-        for (i in range) {
-            result.add(blockRepository.findById(i).get())
+        for (i in from until blocks.size.toLong()) {
+            result.add(blocks[i.toInt()])
         }
         return result
     }
@@ -106,7 +107,7 @@ class NodesController @Autowired constructor(
         //Current node missing blocks:
         if (allBlocks.maxOf { it.blockNumber } + 1 < block.blockNumber) {
             val list: List<Block> =
-                blocksInRange(allBlocks.maxOf { it.blockNumber } + 1 until block.blockNumber)
+                blocksInRange(allBlocks.maxOf { it.blockNumber } + 1)
             blockRepository.saveAll(list)
         }
 
