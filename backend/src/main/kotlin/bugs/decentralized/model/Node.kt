@@ -9,7 +9,8 @@ import org.springframework.data.mongodb.core.mapping.Document
 class Node(
     @Id
     val address: String, // AccountAddress
-    val url: String
+    val url: String,
+    val id: String
 ) {
 
     override fun toString(): String {
