@@ -9,16 +9,17 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 class SecurityConfiguration {
+
     @Bean
     @Throws(Exception::class)
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http.cors().and().csrf().disable()
         http
             .authorizeHttpRequests { auth ->
+                auth.antMatchers("/citizen/**").hasRole(Roles.CITIZEN)
+                auth.antMatchers("/node/**").hasAnyRole(Roles.NODE, Roles.ADMIN)
+                auth.antMatchers("/government/**").hasRole(Roles.GOVERNMENT)
                 auth.anyRequest().permitAll()
-//                auth.antMatchers("/citizen").hasRole(Roles.CITIZEN)
-//                auth.antMatchers("/node").hasRole(Roles.NODE)
-//                auth.antMatchers("/government").hasRole(Roles.GOVERNMENT)
             }
             .httpBasic(withDefaults())
         return http.build()

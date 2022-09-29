@@ -10,8 +10,8 @@ import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.repository.getRoleOf
 import bugs.decentralized.repository.getTransactionsCountBy
-import bugs.decentralized.utils.InvalidTransactionException
 import bugs.decentralized.utils.LoggerExtensions
+import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.ecdsa.Sign
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -20,6 +20,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PutMapping
@@ -49,6 +50,8 @@ class GovernmentController @Autowired constructor(
 
         val hash = transaction.hash
 
+        if (hash != SHA.sha256Hex(transaction.sender.value + transaction.receiver.value + Json.encodeToString(transaction.data) + transaction.nonce))
+
         if (transactionsRepository.getTransaction().any { it.hash == hash }) {
             log.warn("A transaction that already is in the pool has been received")
             return@coroutineScope ResponseEntity.badRequest()
@@ -69,17 +72,17 @@ class GovernmentController @Autowired constructor(
         try {
             if (Sign.checkAddress(
                     transaction.sender,
-                    Json.encodeToString(transaction.data),
+                    Hex.decode(transaction.hash),
                     transaction.signature
                 ) == null
             ) {
-                throw InvalidTransactionException("Transaction's senders address and signature don't match")
+                throw SignatureException("Transaction's senders address and signature don't match")
             }
         } catch (e: SignatureException) {
             log.error("Transaction has an invalid signature")
             return@coroutineScope ResponseEntity.badRequest()
                 .body("Transaction has an invalid signature")
-        } catch (e: InvalidTransactionException) {
+        } catch (e: SignatureException) {
             log.error(e.message)
             return@coroutineScope ResponseEntity.badRequest().body(e.message)
         }

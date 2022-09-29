@@ -35,10 +35,10 @@ object EmailCodeRepository {
         val expirationTimestamp = System.currentTimeMillis().milliseconds + 30L.minutes
 
         val emailCode = EmailCode(
-            accountAddress,
-            email,
-            code,
-            expirationTimestamp.inWholeMilliseconds
+            address = accountAddress,
+            email = email,
+            secretCode = code,
+            expirationTimestamp = expirationTimestamp.inWholeMilliseconds
         )
 
         emailCodes.add(emailCode)

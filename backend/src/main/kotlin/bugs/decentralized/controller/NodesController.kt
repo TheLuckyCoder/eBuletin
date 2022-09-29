@@ -11,13 +11,15 @@ import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
 import bugs.decentralized.repository.TransactionsRepository
 import bugs.decentralized.repository.getRoleOf
-import bugs.decentralized.utils.InvalidTransactionException
 import bugs.decentralized.utils.LoggerExtensions
-import bugs.decentralized.utils.TransactionValidator
+import bugs.decentralized.utils.ecdsa.Sign
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
@@ -97,11 +99,11 @@ class NodesController @Autowired constructor(
     fun newTransaction(@RequestBody transaction: Transaction): ResponseEntity<String> {
         log.info("Received new transaction")
 
-        val roleOfSender = blockRepository.getRoleOf(transaction.sender)
+        /*val roleOfSender = blockRepository.getRoleOf(transaction.sender)
         if (roleOfSender != Roles.GOVERNMENT) {
             return ResponseEntity.status(401)
                 .body("Sender doesn't have the necessary role ($roleOfSender)")
-        }
+        }*/
 
         val hash = transaction.hash
 
@@ -123,12 +125,19 @@ class NodesController @Autowired constructor(
         }
 
         try {
-            TransactionValidator.verifySignature(transaction)
+            if (Sign.checkAddress(
+                    transaction.sender,
+                    Hex.decode(transaction.hash),
+                    transaction.signature
+                ) == null
+            ) {
+                throw SignatureException("Transaction's senders address and signature don't match")
+            }
         } catch (e: SignatureException) {
             log.error("Transaction has an invalid signature")
             return ResponseEntity.badRequest()
                 .body("Transaction has an invalid signature")
-        } catch (e: InvalidTransactionException) {
+        } catch (e: SignatureException) {
             log.error(e.message)
             return ResponseEntity.badRequest().body(e.message)
         }

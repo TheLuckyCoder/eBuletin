@@ -7,5 +7,5 @@ data class EmailCode(
     val expirationTimestamp: Long,
 ) {
 
-    fun isValid() = expirationTimestamp < System.currentTimeMillis()
+    fun isValid() = expirationTimestamp > System.currentTimeMillis()
 }

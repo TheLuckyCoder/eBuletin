@@ -10,6 +10,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.bouncycastle.util.encoders.Hex
 import org.springframework.data.annotation.Id
 
 /**
@@ -48,11 +49,6 @@ data class Transaction(
         get() = AccountAddress(_receiver)
 
     companion object {
-        @OptIn(ExperimentalSerializationApi::class)
-        private val json = Json {
-            explicitNulls = false
-        }
-
         fun create(
             receiver: AccountAddress,
             data: TransactionData,
@@ -60,8 +56,9 @@ data class Transaction(
             nonce: ULong
         ): Transaction {
             val signKeys = Sign.ECKeyPair.from(keyPair)
-            val signature = Sign.sign(json.encodeToString(data), signKeys)
             val sender = keyPair.publicAccount.toAddress()
+            val hash = SHA.sha256Bytes(sender.value + receiver.value + Json.encodeToString(data) + nonce)
+            val signature = Sign.sign(hash, signKeys)
 
             return Transaction(
                 _sender = sender.value,
@@ -69,7 +66,7 @@ data class Transaction(
                 data = data,
                 signature = signature,
                 nonce = nonce.toLong(),
-                hash = SHA.sha256Hex(sender.value + receiver.value + data + nonce)
+                hash = Hex.toHexString(hash),
             )
         }
     }

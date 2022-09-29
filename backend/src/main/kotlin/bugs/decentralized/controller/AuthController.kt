@@ -70,7 +70,7 @@ class AuthController @Autowired constructor(
 
         val emailCode = emailCodeRepository.getExistingCodeForAccount(signedAddress.address)
         if (signedAddress.code != emailCode?.secretCode) {
-            return ResponseEntity.status(401).body("Invalid Email code")
+            return ResponseEntity.status(401).body("Invalid Email code: ${signedAddress.code} (Correct Code: ${emailCode?.secretCode}")
         }
 
         val role = blockRepository.getRoleOf(signedAddress.address)
