@@ -50,7 +50,16 @@ class GovernmentController @Autowired constructor(
 
         val hash = transaction.hash
 
-        if (hash != SHA.sha256Hex(transaction.sender.value + transaction.receiver.value + Json.encodeToString(transaction.data) + transaction.nonce))
+        if (hash != SHA.sha256Hex(
+                transaction.sender.value + transaction.receiver.value + Json.encodeToString(
+                    transaction.data
+                ) + transaction.nonce
+            )
+        ) {
+            log.warn("Invalid transaction hash")
+            return@coroutineScope ResponseEntity.badRequest()
+                .body("Invalid transaction hash")
+        }
 
         if (transactionsRepository.getTransaction().any { it.hash == hash }) {
             log.warn("A transaction that already is in the pool has been received")
@@ -70,32 +79,26 @@ class GovernmentController @Autowired constructor(
         }
 
         try {
-            if (Sign.checkAddress(
+            if (Sign.checkAddressHash(
                     transaction.sender,
                     Hex.decode(transaction.hash),
                     transaction.signature
                 ) == null
             ) {
-                throw SignatureException("Transaction's senders address and signature don't match")
+//                throw SignatureException("Transaction's senders address and signature don't match")
             }
-        } catch (e: SignatureException) {
-            log.error("Transaction has an invalid signature")
-            return@coroutineScope ResponseEntity.badRequest()
-                .body("Transaction has an invalid signature")
         } catch (e: SignatureException) {
             log.error(e.message)
             return@coroutineScope ResponseEntity.badRequest().body(e.message)
         }
 
-        when (roleOfSender)
-        {
-            Roles.ADMIN -> {
-                // NOTHING
-            }
+        when (roleOfSender) {
+            Roles.ADMIN -> Unit
             Roles.CITIZEN -> {
-                return@coroutineScope ResponseEntity.status(401)
+                return@coroutineScope ResponseEntity.badRequest()
                     .body("Sender doesn't have the necessary role ($roleOfSender)")
             }
+
             Roles.GOVERNMENT -> {
                 val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
                     block.transactions.any { it.receiver == transaction.receiver }
@@ -128,16 +131,16 @@ class GovernmentController @Autowired constructor(
                     }
                 }
             }
+
             else -> {
                 if (nonceOfSender != 0UL) {
                     return@coroutineScope ResponseEntity.badRequest()
-                        .body("This sender has alrady sumbit a tranaction")
+                        .body("This sender has already submit a transaction")
                 }
-
             }
         }
 
-        if(nonceOfSender != transaction.nonce.toULong()){
+        if (nonceOfSender != transaction.nonce.toULong()) {
             return@coroutineScope ResponseEntity.badRequest()
                 .body("Nonce doesn't match")
         }

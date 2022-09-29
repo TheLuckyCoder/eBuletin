@@ -153,7 +153,7 @@ class NodesController @Autowired constructor(
         }
 
         try {
-            if (Sign.checkAddress(
+            if (Sign.checkAddressHash(
                     transaction.sender,
                     Hex.decode(transaction.hash),
                     transaction.signature

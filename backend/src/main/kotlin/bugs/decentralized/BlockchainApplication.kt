@@ -1,12 +1,15 @@
 package bugs.decentralized
 
 import bugs.decentralized.blockchain.Blockchain
-import bugs.decentralized.controller.NodesController
 import bugs.decentralized.controller.service.NodesService
-import bugs.decentralized.model.*
+import bugs.decentralized.model.AccountAddress
+import bugs.decentralized.model.Block
+import bugs.decentralized.model.Node
+import bugs.decentralized.model.Roles
+import bugs.decentralized.model.Transaction
+import bugs.decentralized.model.TransactionData
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
-import bugs.decentralized.repository.getLastBlock
 import bugs.decentralized.utils.SHA
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.SignatureData
@@ -16,6 +19,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -39,74 +43,8 @@ class BlockchainApplication {
                     TransactionData(TransactionData.Information(role = Roles.ADMIN)),
                     SignatureData(
                         byteArrayOf(28),
-                        byteArrayOf(
-                            103,
-                            16,
-                            123,
-                            -88,
-                            28,
-                            -51,
-                            -82,
-                            4,
-                            -115,
-                            126,
-                            -126,
-                            -46,
-                            -47,
-                            -32,
-                            -42,
-                            -36,
-                            -16,
-                            0,
-                            -24,
-                            -21,
-                            -124,
-                            104,
-                            -26,
-                            -90,
-                            118,
-                            -117,
-                            12,
-                            69,
-                            -89,
-                            -33,
-                            -1,
-                            -56
-                        ),
-                        byteArrayOf(
-                            43,
-                            42,
-                            -34,
-                            9,
-                            83,
-                            -42,
-                            81,
-                            119,
-                            -35,
-                            16,
-                            104,
-                            62,
-                            80,
-                            -38,
-                            -94,
-                            -17,
-                            -10,
-                            8,
-                            111,
-                            98,
-                            3,
-                            -8,
-                            -67,
-                            1,
-                            7,
-                            -11,
-                            120,
-                            87,
-                            28,
-                            117,
-                            57,
-                            30
-                        )
+                        Hex.decode("67107ba81ccdae048d7e82d2d1e0d6dcf000e8eb8468e6a6768b0c45a7dfffc8"),
+                        Hex.decode("672b2ade0953d65177dd10683e50daa2eff6086f6203f8bd0107f578571c75391e")
                     ),
                     0L
                 )
@@ -146,6 +84,8 @@ fun main(args: Array<String>) {
     val applicationContext = runApplication<BlockchainApplication>(*args)
     val blockRepository = applicationContext.getBean<BlockRepository>()
     val nodesRepository = applicationContext.getBean<NodesRepository>()
+    val blockchain: Blockchain = applicationContext.getBean()
+    val nodesService: NodesService = applicationContext.getBean()
 
     if (blockRepository.count() == 0L) {
         blockRepository.insert(BlockchainApplication.GENESIS_BLOCK)
@@ -155,43 +95,10 @@ fun main(args: Array<String>) {
         nodesRepository.insert(BlockchainApplication.NODE)
     }
 
-    val blockchain: Blockchain = applicationContext.getBean()
-    val nodesService: NodesService = applicationContext.getBean()
-
-    val nodes = nodesRepository.findAll()
-    val blockList = mutableListOf<Block>()
-    //Don't use this
-    val nodeUrlList = mutableListOf<String>()
-    val counter = mutableListOf<Int>()
-
-    //Get the best blockchain (not the longest):
-    for (node in nodes) {
-        val block = nodesService.getLastBlock(node.url)
-
-        if (!blockList.contains(block)) {
-            blockList.add(block)
-            nodeUrlList.add(node.url)
-            counter.add(1)
-        } else {
-            counter[blockList.indexOf(block)]++
-        }
-    }
-
-    var max = -1
-
-    for (i in counter.indices) {
-        if (counter[i] > max)
-            max = counter[i]
-    }
-
-    val index = counter.indexOf(max)
-
-    if(!blockRepository.getLastBlock().equals(blockList[index])){
-        val url = nodeUrlList[index]
-        blockRepository.deleteAll()
-        val list = nodesService.getBlocks(url)
-        blockRepository.insert(list)
-    }
+    val adminKeyPair = SimpleKeyPair(
+        "1bd963d71f8605b8fa33d3b1861e650d4525c7f51bd38b1240348ab50cfc13d0",
+        "042b5e6991a99b37d8cbe752e53a13190615487834d7365045ed2acf5b637ea94940a326647d51709e8d0e71079393d2cc5815d02f48ff184271e6fa3897d3758c"
+    )
 
     GlobalScope.launch(Dispatchers.IO) {
         while (true) {
@@ -200,17 +107,28 @@ fun main(args: Array<String>) {
         }
     }
 
-    /*val keyPair = SimpleKeyPair(
-        "1bd963d71f8605b8fa33d3b1861e650d4525c7f51bd38b1240348ab50cfc13d0",
-        "042b5e6991a99b37d8cbe752e53a13190615487834d7365045ed2acf5b637ea94940a326647d51709e8d0e71079393d2cc5815d02f48ff184271e6fa3897d3758c"
-    )
+    val sef = SimpleKeyPair("167b302077032f483554a15b73dafe8c459b408a75acfefec44f7427899f8437", "5a8d53a870302e630b6f096c58be1efb74c00bf693dd0a55619eb2605eea0e0ec9f5200314dac550a6887cd9c9a1eb984b564e1449135cbba6cd38e91b899938")
+    println(sef.publicAccount.toAddress())
+    println(SHA.sha256Hex(sef.publicHex))
 
     val t = Transaction.create(
+        sef.publicAccount.toAddress(),
+        TransactionData(information = TransactionData.Information(role = Roles.GOVERNMENT, email = "razvan.filea@gmail.com")),
+        adminKeyPair,
+        1UL
+    )
+
+//    nodesService.submitTransaction("http://localhost:11225", t)
+//    nodesService.submitTransaction("https://server.aaconsl.com/blockchain", t)
+
+
+    /*val t = Transaction.create(
         keyPair.publicAccount.toAddress(),
         TransactionData(TransactionData.Information(role = Roles.ADMIN)),
         keyPair,
         0UL
     )*/
+
 
     /*GlobalScope.launch {
         launch {

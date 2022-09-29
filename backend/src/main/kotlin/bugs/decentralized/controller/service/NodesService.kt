@@ -13,7 +13,7 @@ import java.net.URI
 import java.time.Duration
 
 @Service
-abstract class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuilder) {
+class NodesService @Autowired constructor(restTemplateBuilder: RestTemplateBuilder) {
 
     private val restTemplate = restTemplateBuilder
         .setConnectTimeout(Duration.ofSeconds(30))
@@ -45,7 +45,7 @@ abstract class NodesService @Autowired constructor(restTemplateBuilder: RestTemp
 
     fun submitTransaction(nodeUrl: String, transaction: Transaction): Boolean {
         return try {
-            restTemplate.put("$nodeUrl/node/submit_transaction", transaction)
+            restTemplate.put("$nodeUrl/submit_transaction", transaction)
             true
         } catch (e: Exception) {
             e.printStackTrace()

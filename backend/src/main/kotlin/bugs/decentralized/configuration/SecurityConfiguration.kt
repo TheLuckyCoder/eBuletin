@@ -16,9 +16,10 @@ class SecurityConfiguration {
         http.cors().and().csrf().disable()
         http
             .authorizeHttpRequests { auth ->
-                auth.antMatchers("/citizen/**").hasRole(Roles.CITIZEN)
-                auth.antMatchers("/node/**").hasAnyRole(Roles.NODE, Roles.ADMIN)
-                auth.antMatchers("/government/**").hasRole(Roles.GOVERNMENT)
+//                auth.antMatchers("/citizen/register").permitAll()
+//                auth.antMatchers("/citizen/**").hasRole(Roles.CITIZEN)
+//                auth.antMatchers("/node/**").hasAnyRole(Roles.NODE, Roles.ADMIN)
+//                auth.antMatchers("/government/**").hasRole(Roles.GOVERNMENT)
                 auth.anyRequest().permitAll()
             }
             .httpBasic(withDefaults())

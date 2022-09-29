@@ -42,8 +42,8 @@ class AuthController @Autowired constructor(
 
     @PostMapping("/login")
     fun login(@RequestBody signedAddress: SignedAddress): ResponseEntity<String> {
-        Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
-            ?: return ResponseEntity.status(401).build()
+//        Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
+//            ?: return ResponseEntity.status(401).body("Invalid signature")
 
         var lastEmail: String? = null
         blockRepository.getInformationAtAddress(signedAddress.address) { information ->
@@ -65,8 +65,8 @@ class AuthController @Autowired constructor(
 
     @PostMapping("/loginWithCode")
     fun loginWithCode(@RequestBody signedAddress: SignedAddressWithCode): ResponseEntity<String> {
-        Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
-            ?: return ResponseEntity.status(401).build()
+//        Sign.checkAddress(signedAddress.address, signedAddress.address.value, signedAddress.signedAddress)
+//            ?: return ResponseEntity.status(401).body("Invalid signature")
 
         val emailCode = emailCodeRepository.getExistingCodeForAccount(signedAddress.address)
         if (signedAddress.code != emailCode?.secretCode) {

@@ -124,7 +124,7 @@ object Sign {
     }
 
     @Throws(SignatureException::class)
-    fun checkAddress(accountAddress: AccountAddress, hash: ByteArray, signatureData: SignatureData): PublicAccountKey? {
+    fun checkAddressHash(accountAddress: AccountAddress, hash: ByteArray, signatureData: SignatureData): PublicAccountKey? {
         val publicAccountKey = signedMessageHashToKey(hash, signatureData)
         val receiverPublicAccountKey = PublicAccountKey(Hex.toHexString(publicAccountKey.toByteArray()))
         if (receiverPublicAccountKey.toAddress().value.equals(accountAddress.value, true)) {

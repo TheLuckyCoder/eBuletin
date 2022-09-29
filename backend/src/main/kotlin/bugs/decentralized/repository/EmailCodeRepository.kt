@@ -2,7 +2,9 @@ package bugs.decentralized.repository
 
 import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.EmailCode
+import bugs.decentralized.utils.SHA
 import java.security.SecureRandom
+import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
@@ -31,7 +33,8 @@ object EmailCodeRepository {
             return it.secretCode
         }
 
-        val code = SecureRandom.getInstanceStrong().nextInt(100000, 999999)
+        val random = Random(SHA.sha256Hex(accountAddress.value + System.currentTimeMillis()).substring(0, 15).toLong(16))
+        val code = random.nextInt(100000, 999999)
         val expirationTimestamp = System.currentTimeMillis().milliseconds + 30L.minutes
 
         val emailCode = EmailCode(

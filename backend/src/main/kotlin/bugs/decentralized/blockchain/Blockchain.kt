@@ -83,8 +83,6 @@ class Blockchain @Autowired constructor(
             )
             log.info("Mined a new block! $newBlock")
 
-            require(newBlock.stateHash != null) { "General Hash can not be null" }
-
             ensureActive()
             launch(Dispatchers.IO) {
                 blockRepository.save(newBlock)
