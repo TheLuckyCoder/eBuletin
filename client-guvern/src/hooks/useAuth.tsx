@@ -44,6 +44,7 @@ export const useAuth = () => {
       console.log(token);
       window.localStorage.setItem("bearerToken", token);
       window.sessionStorage.setItem("privateKey", privateKey);
+      setIsAuthenticated(true);
       navigate("/");
     } catch (error: any) {
       console.error(error);
