@@ -166,18 +166,20 @@ const Login = () => {
               <Link
                 component="button"
                 underline="hover"
-                onClick={() =>
-                  router.push("/register", null, { shallow: true })
-                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push("/register", null, { shallow: true });
+                }}
               >
                 Inregistreaza-te
               </Link>
               <Link
                 component="button"
                 underline="hover"
-                onClick={() =>
-                  router.push("/recovery", null, { shallow: true })
-                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push("/recovery", null, { shallow: true });
+                }}
               >
                 Recupereaza Cheia
               </Link>

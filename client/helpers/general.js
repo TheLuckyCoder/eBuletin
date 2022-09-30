@@ -10,17 +10,24 @@ export const encryptJsonData = (publicKey, data) => {
   return encrypted;
 };
 
-
 export const decryptJsonData = (encryptedData, privateKey) => {
   const encryptedDataArrayBuffer = Buffer.from(encryptedData, "hex");
   const decryptedData = decrypt(privateKey, encryptedDataArrayBuffer);
   return JSON.parse(decryptedData);
 };
 
-export const getAddressFromPublicKey = async (publicKey) => {
-  const uint8Array = Buffer.from(publicKey, "hex");
-  const shaBuffer = await secp.utils.sha256(uint8Array);
-  const last20Bytes = shaBuffer.slice(shaBuffer.length - 20);
-  const shaChar = Buffer.from(last20Bytes).toString("hex");
-  return "0x" + (shaChar).toUpperCase();
+export const getAddressFromPublicKey = async (pub) => {
+  // remove "04"
+  let publicKey = pub;
+  if (publicKey.substring(0, 2) == "04") {
+    publicKey = publicKey.substring(2);
+  }
+  const textAsBuffer = new TextEncoder().encode(publicKey);
+  const shaBuffer = await window.crypto.subtle.digest("SHA-256", textAsBuffer);
+  console.log(shaBuffer);
+  const hashArray = Array.from(new Uint8Array(shaBuffer));
+  const digest = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  const last40Char = digest.substring(digest.length - 40);
+  console.log(last40Char);
+  return "0x" + last40Char;
 };

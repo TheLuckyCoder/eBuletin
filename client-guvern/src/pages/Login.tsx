@@ -1,3 +1,4 @@
+import { LoadingButton } from "@mui/lab";
 import {
   Box,
   Button,
@@ -15,20 +16,20 @@ import { useAuth } from "../hooks/useAuth";
 
 export const Login = () => {
   const navigate = useNavigate();
-  const { error, isLoading, login } = useAuth();
+  const { error, isLoading, generalLogin, show2Fa } = useAuth();
   const {
     handleSubmit,
     control,
     formState: { errors },
   } = useForm<LoginInput>({
     defaultValues: {
-      username: "",
-      password: "",
+      privateKey: "",
+      code: undefined,
     },
   });
 
   const handleLogin = (data: LoginInput) => {
-    login(data.username, data.password);
+    generalLogin(data.privateKey, data.code);
   };
 
   return (
@@ -56,28 +57,29 @@ export const Login = () => {
               Log in!
             </Typography>
             <ControlledTextField
-              name="username"
-              label="Username"
+              name="privateKey"
+              label="Private key"
               autofill="username"
               control={control}
               rules={{ required: true }}
             />
-            <ControlledTextField
-              name="password"
-              label="Password"
-              control={control}
-              autofill="current-password"
-              rules={{ required: true }}
-              type="password"
-            />
-            <Button
+            {show2Fa && (
+              <ControlledTextField
+                name="code"
+                label="2FA Code"
+                control={control}
+                rules={{ required: true }}
+              />
+            )}
+            <LoadingButton
               variant="contained"
               color="primary"
               sx={{ maxWidth: "200px" }}
               type="submit"
+              loading={isLoading}
             >
               Log in
-            </Button>
+            </LoadingButton>
             <Link
               component="button"
               underline="hover"

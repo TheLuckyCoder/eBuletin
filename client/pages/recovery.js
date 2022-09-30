@@ -74,14 +74,20 @@ const recovery = () => {
               <Link
                 component="button"
                 underline="hover"
-                onClick={() => router.push("/register")}
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push("/register");
+                }}
               >
                 Creaza Cont
               </Link>
               <Link
                 component="button"
                 underline="hover"
-                onClick={() => router.push("/login")}
+                onClick={() => {
+                  e.preventDefault();
+                  router.push("/login");
+                }}
               >
                 Recupereaza Cheia
               </Link>

@@ -8,6 +8,7 @@ export interface IIdCard {
   seriesNumber: string;
   validity: string;
   issuedBy: string;
+  address: string;
 }
 
 export interface IMedicalCard {
@@ -56,5 +57,3 @@ export interface ITransaction {
   nonce: number;
   [key: string]: any;
 }
-
-

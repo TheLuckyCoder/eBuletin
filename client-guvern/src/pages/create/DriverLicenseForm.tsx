@@ -12,6 +12,16 @@ import { ControlledTextField } from "../../components";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { IDriverLicense } from "../../types/transaction";
+import {
+  createTransaction,
+  generatePublicKey,
+  getAddressFromPublicKey,
+} from "../../helpers/transaction";
+import {
+  getNounce,
+  putSubmitTransaction,
+} from "../../service/GovernmentService";
+import { generatePublicKeyFromPrivateKey } from "../../helpers/keysHelper";
 
 const formSchema = Yup.object({
   blockchainAddress: Yup.string().required(),
@@ -42,7 +52,40 @@ export const DriverLicenseForm = () => {
     formState: { errors },
   } = useForm<FormDriverLicense>(formConfig);
 
-  const handleRegister = (data: FormDriverLicense) => {
+  const handleRegister = async (data: FormDriverLicense) => {
+    try {
+      const privateKey = window.sessionStorage.getItem("privateKey");
+      if (!privateKey) {
+        throw new Error("No private key found");
+      }
+      const information = { ...data } as any;
+      delete information.blockchainAddress;
+      let driverLicense = information as IDriverLicense;
+      // idCard.cnp = parseInt(idCard.cnp );
+      // idCard.seriesNumber = parseInt(idCard.seriesNumber);
+      driverLicense.expirationDate = `"${driverLicense.expirationDate}"`;
+      driverLicense.issueDate = `"${driverLicense.issueDate}"`;
+      driverLicense.validFrom = `"${driverLicense.validFrom}"`;
+      driverLicense.validUntil = `"${driverLicense.validUntil}"`;
+
+      const pubKey = generatePublicKeyFromPrivateKey(privateKey);
+      const address = await getAddressFromPublicKey(pubKey);
+
+      const nounce = await getNounce(address);
+
+      const transaction = await createTransaction(
+        privateKey,
+        data.blockchainAddress,
+        { driverLicense },
+        nounce
+      );
+
+      await putSubmitTransaction(transaction);
+      window.alert("Driver License Created");
+      // register(data);
+    } catch (e) {
+      console.error(e);
+    }
     console.log(data);
   };
 
@@ -133,14 +176,14 @@ export const DriverLicenseForm = () => {
               <Grid item xs={6}>
                 <ControlledTextField
                   name="validFrom"
-                  label="Valabilitate"
+                  label="Valabil de la"
                   control={control}
                 />
               </Grid>
               <Grid item xs={6}>
                 <ControlledTextField
                   name="validUntil"
-                  label="Emisă de"
+                  label="Valabil până la"
                   control={control}
                 />
               </Grid>

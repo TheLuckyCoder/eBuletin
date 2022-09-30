@@ -178,14 +178,20 @@ const Register = () => {
               <Link
                 component="button"
                 underline="hover"
-                onClick={() => router.push("/login")}
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push("/login");
+                }}
               >
                 Logheaza-te
               </Link>
               <Link
                 component="button"
                 underline="hover"
-                onClick={() => router.push("/recovery")}
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push("/recovery");
+                }}
               >
                 Recupereaza Cheia
               </Link>

@@ -87,6 +87,30 @@ export const HealthIssuranceCard = ({ healthIssuranceInfo }) => {
                 {healthIssuranceInfo?.firstName}
               </Typography>
             </Grid>
+            <Grid item xs={12}>
+              <Typography
+                fontWeight="light"
+                fontStyle="oblique"
+                fontSize="0.5rem"
+              >
+                Numar Document
+              </Typography>
+              <Typography textTransform="uppercase" fontSize="0.7rem">
+                {healthIssuranceInfo?.documentNumber}
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography
+                fontWeight="light"
+                fontStyle="oblique"
+                fontSize="0.5rem"
+              >
+                Cod de asigurat
+              </Typography>
+              <Typography textTransform="uppercase" fontSize="0.7rem">
+                {healthIssuranceInfo?.insuranceCode}
+              </Typography>
+            </Grid>
             <Grid container item xs={12} justifyContent="space-between">
               <Grid item>
                 <Typography
@@ -94,13 +118,13 @@ export const HealthIssuranceCard = ({ healthIssuranceInfo }) => {
                   fontStyle="oblique"
                   fontSize="0.5rem"
                 >
-                  Data nasterii
+                  Data Expirarii
                 </Typography>
                 <Typography textTransform="uppercase" fontSize="0.7rem">
-                  {getBirthDateFromCnp(healthIssuranceInfo?.cnp)}
+                  {healthIssuranceInfo?.expiryDate}
                 </Typography>
               </Grid>
-              <Grid item>
+              {/* <Grid item>
                 <Typography
                   fontWeight="light"
                   fontStyle="oblique"
@@ -109,9 +133,9 @@ export const HealthIssuranceCard = ({ healthIssuranceInfo }) => {
                   Cod numeric personal
                 </Typography>
                 <Typography textTransform="uppercase" fontSize="0.7rem">
-                  {healthIssuranceInfo?.cnp}
+                  {healthIssuranceInfo?.}
                 </Typography>
-              </Grid>
+              </Grid> */}
             </Grid>
             <Grid
               container

@@ -7,7 +7,7 @@ interface IAuthContext {
 }
 export const AuthContext = createContext<IAuthContext>({
   isAuthenticated: isLoggedIn(),
-  setIsAuthenticated: () => {},
+  setIsAuthenticated: (bool: boolean) => {},
   user: null,
 });
 

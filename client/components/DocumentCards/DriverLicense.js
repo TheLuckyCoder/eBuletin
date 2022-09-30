@@ -5,7 +5,7 @@ import { cardColor } from "../../colors";
 import downloadjs from "downloadjs";
 import html2canvas from "html2canvas";
 
-export const DriverLicense = () => {
+export const DriverLicense = ({ driverLicense }) => {
   const downloadIdCard = useCallback(async () => {
     const container = document.getElementById("drivareLicense");
     const root = container.create;
@@ -14,6 +14,7 @@ export const DriverLicense = () => {
     });
     downloadjs(canvas.toDataURL(), "permis.png");
   }, []);
+  console.log(driverLicense);
   return (
     <div
       style={{
@@ -45,14 +46,14 @@ export const DriverLicense = () => {
                 objectPosition="top"
               />
             </Grid>
-            <Grid item xs={12}>
+            {/* <Grid item xs={12}>
               <Image
                 src="/images/portrait.jpeg"
                 width="77px"
                 height="100%"
                 objectFit="contain"
               />
-            </Grid>
+            </Grid> */}
           </Grid>
           <Grid item xs={9} container maxHeight="150px">
             <Grid container item xs={12} justifyContent="space-between">
@@ -69,47 +70,42 @@ export const DriverLicense = () => {
             </Grid>
             <Grid item xs={12}>
               <Typography textTransform="uppercase" fontSize="0.7rem">
-                1. Filea
+                1. {driverLicense.firstName}
               </Typography>
             </Grid>
             <Grid item xs={12}>
               <Typography textTransform="uppercase" fontSize="0.7rem">
-                2. Razvan
+                2. {driverLicense.lastName}
               </Typography>
             </Grid>
             <Grid item xs={12}>
               <Typography textTransform="uppercase" fontSize="0.7rem">
-                3. 22.06.2002 Sibiu, SB
+                3. {driverLicense.placeAndDateOfBirth}
               </Typography>
             </Grid>
             <Grid container item xs={12} spacing={2}>
               <Grid item>
                 <Typography textTransform="uppercase" fontSize="0.7rem">
-                  4a. 22.06.2022
+                  4a. {driverLicense.validFrom}
                 </Typography>
               </Grid>
               <Grid item>
                 <Typography textTransform="uppercase" fontSize="0.7rem">
-                  4c. SRPCIV Sibiu
+                  4c. {driverLicense.issuedBy}
                 </Typography>
               </Grid>
             </Grid>
             <Grid container item xs={12} spacing={2}>
               <Grid item>
                 <Typography textTransform="uppercase" fontSize="0.7rem">
-                  4b. 22.06.2032
+                  4b. {driverLicense.validUntil}
                 </Typography>
               </Grid>
               <Grid item>
                 <Typography textTransform="uppercase" fontSize="0.7rem">
-                  4d. 89237491083471
+                  4d. {driverLicense.licenseNumber}
                 </Typography>
               </Grid>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography textTransform="uppercase" fontSize="0.7rem">
-                5. SS023402
-              </Typography>
             </Grid>
           </Grid>
           <Grid container item xs={3}></Grid>
@@ -124,7 +120,7 @@ export const DriverLicense = () => {
               9.
             </Typography>
           </Grid>
-          {["AM", "A", "B"].map((category, index) => (
+          {driverLicense.categories.split(" ").map((category, index) => (
             <Grid item key={index}>
               <Typography
                 display="inline-block"

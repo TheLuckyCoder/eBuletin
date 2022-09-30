@@ -84,7 +84,7 @@ export const IdCard = ({ idCardInfo }) => {
             </Grid>
           </Grid>
           <Grid container item xs={12}>
-            <Grid item xs={3}>
+            {/* <Grid item xs={3}>
               <Image
                 style={{ marginRight: "5px" }}
                 src="/images/portrait.jpeg"
@@ -93,8 +93,8 @@ export const IdCard = ({ idCardInfo }) => {
                 objectPosition="left"
                 objectFit="contain"
               />
-            </Grid>
-            <Grid container item xs={9}>
+            </Grid> */}
+            <Grid container item xs={12}>
               <Grid item xs={12}>
                 <Typography
                   fontWeight="light"

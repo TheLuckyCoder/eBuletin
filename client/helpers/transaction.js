@@ -1,6 +1,7 @@
 import * as secp from "@noble/secp256k1";
 import { Signature } from "@noble/secp256k1";
 import { getAddressFromPublicKey } from "./general";
+import { generatePublicKeyFromPrivateKey } from "./secretPassphrase";
 
 function stringToByteArray(str) {
   const ret = new Uint8Array(str.length);
@@ -12,6 +13,12 @@ function stringToByteArray(str) {
 
 function bigIntToUInt8Array(value) {
   const hex = value.toString(16);
+  // if (hex.length === 63) {
+  if (hex.length === 1) {
+    console.log("hopa");
+  }
+  return Buffer.from(hex, "hex");
+
   return secp.utils.hexToBytes(hex);
 }
 
@@ -61,7 +68,7 @@ export function generatePrivateKey() {
   return secp.utils.randomPrivateKey();
 }
 
-export function generatePublicKey(privateKey) {
+function generatePublicKey(privateKey) {
   return secp.getPublicKey(privateKey, false);
 }
 
@@ -84,7 +91,7 @@ export async function createTransaction(
     information,
   };
 
-  const pubKey = secp.getPublicKey(privateKey);
+  const pubKey = generatePublicKeyFromPrivateKey(privateKey);
   const sender = await getAddressFromPublicKey(pubKey);
   const msgHash = await secp.utils.sha256(
     stringToByteArray(

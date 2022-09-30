@@ -5,8 +5,14 @@ import { DriverLicense } from "./DocumentCards/DriverLicense";
 import { HealthIssuranceCard } from "./DocumentCards/HealthIssuranceCard";
 import { IdCard } from "./DocumentCards/IdCard";
 
-export const Documents = ({ idCard }) => {
-  if (!idCard.data) {
+export const Documents = ({ idCard, medicalCard, driverLicense }) => {
+  if (medicalCard.loading || driverLicense.loading || idCard.loading) {
+    return <div>Loading...</div>;
+  }
+
+  console.log(medicalCard.data);
+
+  if (!idCard.data && !medicalCard.data && !driverLicense.data) {
     // implement 404 for no document
     return (
       <Typography color="primary" textAlign="center" variant="h5" mt={10}>
@@ -26,9 +32,13 @@ export const Documents = ({ idCard }) => {
         {idCard.data && (
           <>
             <IdCard idCardInfo={idCard.data} />
-            <HealthIssuranceCard healthIssuranceInfo={idCard.data} />
-            <DriverLicense />
           </>
+        )}
+        {medicalCard.data && (
+          <HealthIssuranceCard healthIssuranceInfo={medicalCard.data} />
+        )}
+        {driverLicense.data && (
+          <DriverLicense driverLicense={driverLicense.data} />
         )}
       </Box>
     </Box>

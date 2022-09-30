@@ -161,18 +161,15 @@ export const useAuth = () => {
   };
 
   const login = async (password) => {
-    setIsLoading(true);
     setError(false);
     try {
       const privateKey = decryptPrivateKey(encryptedPrivateKey, password);
       setPrivateKey(privateKey);
       window.sessionStorage.setItem("privateKey", privateKey);
       setIsAuthenticated(true);
-      setIsLoading(false);
       return { privateKey, encryptedPrivateKey: null };
     } catch (error) {
       setError("Invalid Password");
-      setIsLoading(false);
       throw error;
     }
   };
@@ -194,6 +191,7 @@ export const useAuth = () => {
         email,
         role: "citizen",
       });
+      console.log("transaction", transaction);
       console.log(await registerRequest(transaction));
       downloadPrivateKey(privateKey);
       setIsLoading(false);

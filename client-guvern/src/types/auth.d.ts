@@ -1,7 +1,7 @@
 
 interface LoginInput {
-    username: string;
-    password: string;
+    privateKey: string;
+    code: number;
 }
 
 interface RegisterInput {
