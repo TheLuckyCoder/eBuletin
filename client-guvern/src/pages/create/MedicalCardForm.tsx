@@ -54,9 +54,11 @@ export const MedicalCardForm = () => {
       }
       const information = { ...data } as any;
       delete information.blockchainAddress;
-      const medicalCard = information as IMedicalCard;
+      let medicalCard = information as IMedicalCard;
       // idCard.cnp = parseInt(idCard.cnp );
       // idCard.seriesNumber = parseInt(idCard.seriesNumber);
+
+      medicalCard.expiryDate = `"${medicalCard.expiryDate}"`;
 
       const pubKey = generatePublicKeyFromPrivateKey(privateKey);
       const address = await getAddressFromPublicKey(pubKey);
