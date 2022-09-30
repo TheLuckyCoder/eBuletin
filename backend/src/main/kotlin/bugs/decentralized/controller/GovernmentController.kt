@@ -2,6 +2,7 @@ package bugs.decentralized.controller
 
 import bugs.decentralized.BlockchainApplication
 import bugs.decentralized.controller.service.NodesService
+import bugs.decentralized.model.AccountAddress
 import bugs.decentralized.model.PublicAccountKey
 import bugs.decentralized.model.Roles
 import bugs.decentralized.model.Transaction
@@ -21,6 +22,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.bouncycastle.asn1.x509.ObjectDigestInfo.publicKey
 import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -44,10 +46,8 @@ class GovernmentController @Autowired constructor(
     private val log = LoggerExtensions.getLogger<NodesController>()
     private val transactionsRepository = TransactionsRepository
 
-    @GetMapping("/government/nonce/{publicKey}")
-    fun nonce(@PathVariable publicKey: PublicAccountKey): ULong {
-        val address = publicKey.toAddress()
-
+    @GetMapping("/government/nonce/{address}")
+    fun nonce(@PathVariable address: AccountAddress): ULong {
         return blockRepository.getTransactionsCountBy(address)
     }
 
@@ -95,7 +95,7 @@ class GovernmentController @Autowired constructor(
                     transaction.signature
                 ) == null
             ) {
-//                throw SignatureException("Transaction's senders address and signature don't match")
+                throw SignatureException("Transaction's senders address and signature don't match")
             }
         } catch (e: SignatureException) {
             log.error(e.message)
@@ -110,7 +110,7 @@ class GovernmentController @Autowired constructor(
             }
 
             Roles.GOVERNMENT -> {
-                /*val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
+                val isNotTheFirstTransactionWithThisReceiver = blocks.any { block ->
                     block.transactions.any { it.receiver == transaction.receiver }
                 }
 
@@ -124,10 +124,9 @@ class GovernmentController @Autowired constructor(
                         return@coroutineScope ResponseEntity.badRequest()
                             .body("It's the first transaction of this account, but the IdCard is not complete")
                     }
-                }*/
+                }
 
-                // TODO Re-enable
-                /*transaction.data.information?.idCard?.forEach { (key, value) ->
+                transaction.data.information?.idCard?.forEach { (key, value) ->
                     when (key) {
                         IdCard::cnp.name -> check(value.length == 13)
                         IdCard::lastName.name -> check(value.length >= 3)
@@ -140,7 +139,7 @@ class GovernmentController @Autowired constructor(
                         IdCard::seriesNumber.name -> check(value.length == 6)
                         IdCard::validity.name -> Json.decodeFromString<LocalDate>(value)
                     }
-                }*/
+                }
             }
 
             else -> {

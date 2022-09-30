@@ -10,7 +10,7 @@ import bugs.decentralized.model.Transaction
 import bugs.decentralized.model.TransactionData
 import bugs.decentralized.repository.BlockRepository
 import bugs.decentralized.repository.NodesRepository
-import bugs.decentralized.utils.SHA
+import bugs.decentralized.repository.getLastBlock
 import bugs.decentralized.utils.ecdsa.ECIES
 import bugs.decentralized.utils.ecdsa.SignatureData
 import bugs.decentralized.utils.ecdsa.SimpleKeyPair
@@ -18,6 +18,7 @@ import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.getBean
@@ -95,6 +96,42 @@ fun main(args: Array<String>) {
         nodesRepository.insert(BlockchainApplication.NODE)
     }
 
+    runCatching {
+        val nodes = nodesRepository.findAll()
+        val blockList = mutableListOf<Block>()
+        val nodeUrlList = mutableListOf<String>()
+        val counter = mutableListOf<Int>()
+
+        //Get the best blockchain (not the longest):
+        for (node in nodes) {
+            val block = nodesService.getLastBlock(node.url)
+
+            if (!blockList.contains(block)) {
+                blockList.add(block)
+                nodeUrlList.add(node.url)
+                counter.add(1)
+            } else {
+                counter[blockList.indexOf(block)]++
+            }
+        }
+
+        var max = -1
+
+        for (i in counter.indices) {
+            if (counter[i] > max)
+                max = counter[i]
+        }
+
+        val index = counter.indexOf(max)
+
+        if(blockRepository.getLastBlock() != blockList[index]){
+            val url = nodeUrlList[index]
+            blockRepository.deleteAll()
+            val list = nodesService.getBlocks(url)
+            blockRepository.insert(list)
+        }
+    }
+
     val adminKeyPair = SimpleKeyPair(
         "1bd963d71f8605b8fa33d3b1861e650d4525c7f51bd38b1240348ab50cfc13d0",
         "042b5e6991a99b37d8cbe752e53a13190615487834d7365045ed2acf5b637ea94940a326647d51709e8d0e71079393d2cc5815d02f48ff184271e6fa3897d3758c"
@@ -102,24 +139,33 @@ fun main(args: Array<String>) {
 
     GlobalScope.launch(Dispatchers.IO) {
         while (true) {
-            println("Starting mining session")
+            println("`Starting` mining session")
             blockchain.miningSession(BlockchainApplication.NODE)
         }
     }
 
-    val sef = SimpleKeyPair("167b302077032f483554a15b73dafe8c459b408a75acfefec44f7427899f8437", "5a8d53a870302e630b6f096c58be1efb74c00bf693dd0a55619eb2605eea0e0ec9f5200314dac550a6887cd9c9a1eb984b564e1449135cbba6cd38e91b899938")
-    println(sef.publicAccount.toAddress())
-    println(SHA.sha256Hex(sef.publicHex))
+    // Setup a first government account
+    run {
+        val governmentAccount = SimpleKeyPair(
+            "167b302077032f483554a15b73dafe8c459b408a75acfefec44f7427899f8437",
+            "5a8d53a870302e630b6f096c58be1efb74c00bf693dd0a55619eb2605eea0e0ec9f5200314dac550a6887cd9c9a1eb984b564e1449135cbba6cd38e91b899938"
+        )
 
-    val t = Transaction.create(
-        sef.publicAccount.toAddress(),
-        TransactionData(information = TransactionData.Information(role = Roles.GOVERNMENT, email = "razvan.filea@gmail.com")),
-        adminKeyPair,
-        1UL
-    )
+        val t = Transaction.create(
+            governmentAccount.publicAccount.toAddress(),
+            TransactionData(
+                information = TransactionData.Information(
+                    role = Roles.GOVERNMENT,
+                    email = "razvan.filea@gmail.com"
+                )
+            ),
+            adminKeyPair,
+            1UL
+        )
 
-//    nodesService.submitTransaction("http://localhost:11225", t)
-    nodesService.submitTransaction("https://server.aaconsl.com/blockchain", t)
+        nodesService.submitTransaction("http://localhost:11225", t)
+    }
+//    nodesService.submitTransaction("https://server.aaconsl.com/blockchain", t)
 
 
     /*val t = Transaction.create(
@@ -130,14 +176,11 @@ fun main(args: Array<String>) {
     )*/
 
 
-    /*GlobalScope.launch {
+    GlobalScope.launch {
         launch {
             delay(500)
             println("Sending nodes")
             nodesService.sendAllNodes("https://server.aaconsl.com/blockchain", nodesRepository.findAll())
-            delay(500)
-            println("Sending transactions")
-            nodesService.submitTransaction()
         }
-    }*/
+    }
 }

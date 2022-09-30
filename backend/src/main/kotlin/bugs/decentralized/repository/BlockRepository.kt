@@ -10,7 +10,7 @@ interface BlockRepository : MongoRepository<Block, Long>
 fun BlockRepository.getRoleOf(address: AccountAddress): String? {
     for (block in findAll()) {
         for (transaction in block.transactions) {
-            if (transaction.receiver == address) {
+            if (transaction.receiver.value.equals(address.value, true)) {
                 transaction.data.information?.role?.let {
                     return it
                 }
@@ -41,11 +41,10 @@ fun BlockRepository.getInformationAtAddress(
 
     for (block in blocks) {
         for (transaction in block.transactions) {
-            if (transaction.receiver != address)
-                continue
-
-            transaction.data.information?.let {
-                onInformationFound(it)
+            if (transaction.receiver.value.equals(address.value, true)) {
+                transaction.data.information?.let {
+                    onInformationFound(it)
+                }
             }
         }
     }

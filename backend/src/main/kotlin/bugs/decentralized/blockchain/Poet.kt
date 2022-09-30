@@ -9,8 +9,8 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 object Poet {
-    private val MIN_TIME = 10.seconds
-    private val MAX_TIME = 1.minutes
+    private val MIN_TIME = 2.seconds
+    private val MAX_TIME = 30.seconds//1.minutes
     val epsilon = 10.seconds
 
     fun computeWaitTime(lastBlock: Block, nodeAddress: String): Long {

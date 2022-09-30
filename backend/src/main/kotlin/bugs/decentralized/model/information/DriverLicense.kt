@@ -19,7 +19,7 @@ data class DriverLicense(
     val licenseNumber: String,
     val validFrom: LocalDate,
     val validUntil: LocalDate,
-    val categories: List<String>
+    val categories: String
 ) {
 
     fun toMap(): StringMap = buildMap {
@@ -31,7 +31,7 @@ data class DriverLicense(
         put(DriverLicense::licenseNumber.name, licenseNumber)
         put(DriverLicense::validFrom.name, Json.encodeToString(validFrom))
         put(DriverLicense::validUntil.name, Json.encodeToString(validUntil))
-        put(DriverLicense::categories.name, Json.encodeToString(categories))
+        put(DriverLicense::categories.name, categories)
     }
 
     companion object {
@@ -47,7 +47,7 @@ data class DriverLicense(
             licenseNumber = map["licenseNumber"]!!,
             validFrom = Json.decodeFromString(map["validFrom"]!!),
             validUntil = Json.decodeFromString(map["validUntil"]!!),
-            categories = Json.decodeFromString(map["categories"]!!),
+            categories = map["categories"]!!,
         )
     }
 }
